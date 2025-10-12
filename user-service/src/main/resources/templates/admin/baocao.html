@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 Báo Cáo & Thống Kê - Bệnh Viện XYZ</title>
+  <!-- Font Awesome cho icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #f0f4f8);
+      margin: 0;
+      padding: 0;
+      color: #333;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      padding: 40px 20px 80px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: "";
+      background: url('https://cdn-icons-png.flaticon.com/512/2966/2966487.png') no-repeat center/120px;
+      opacity: 0.15;
+      position: absolute;
+      inset: 0;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 38px;
+      font-weight: bold;
+      position: relative;
+      z-index: 1;
+    }
+    .header p {
+      margin: 10px 0 0;
+      font-size: 18px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* User menu */
+    .user-menu {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      z-index: 2;
+    }
+    .user-icon {
+      font-size: 20px;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      width: 42px;
+      height: 42px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .user-icon:hover {
+      background: rgba(255,255,255,0.25);
+      transform: scale(1.08);
+    }
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      margin-top: 10px;
+      min-width: 180px;
+      overflow: hidden;
+      z-index: 999;
+    }
+    .dropdown a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      transition: background 0.3s;
+    }
+    .dropdown a:hover {
+      background: #f1f1f1;
+    }
+    .user-menu.active .dropdown {
+      display: block;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+      padding: 40px;
+      animation: fadeIn 0.6s ease-in-out;
+      margin: -60px auto 40px;
+      position: relative;
+      z-index: 10;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    h1.section-title {
+      color: #1a3c64;
+      font-size: 30px;
+      margin-bottom: 15px;
+      text-align: center;
+      position: relative;
+    }
+    h1.section-title::after {
+      content: '';
+      width: 60px; height: 4px;
+      background: #2196f3;
+      position: absolute;
+      bottom: -10px; left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+    .welcome-message {
+      text-align: center;
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 35px;
+    }
+
+    /* Navigation button */
+    .nav-button {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .nav-button a {
+      padding: 10px 20px;
+      background: #2196f3;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .nav-button a:hover {
+      background: #1a7bd1;
+    }
+
+    /* Stats cards */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: #f5faff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .stat-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      background: #e3f2fd;
+    }
+    .stat-card i {
+      font-size: 40px;
+      color: #2196f3;
+      margin-bottom: 10px;
+    }
+    .stat-card h3 {
+      color: #1a3c64;
+      font-size: 24px;
+      margin: 10px 0;
+    }
+    .stat-card p {
+      color: #555;
+      font-size: 16px;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .filter-bar input {
+      padding: 12px 20px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      font-size: 16px;
+      outline: none;
+    }
+    .filter-bar button {
+      padding: 12px 20px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .filter-bar button:hover {
+      background: #1a7bd1;
+    }
+
+    /* Report table */
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .report-table th, .report-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .report-table th {
+      background: #f5faff;
+      color: #1a3c64;
+      font-weight: bold;
+    }
+    .report-table tr:hover {
+      background: #e3f2fd;
+    }
+    .actions a {
+      padding: 8px 12px;
+      border-radius: 5px;
+      text-decoration: none;
+      color: white;
+      display: inline-block;
+      background: #2196f3;
+      transition: background 0.3s;
+    }
+    .actions a:hover {
+      background: #1a7bd1;
+    }
+
+    /* Pagination */
+    .pagination {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .pagination a {
+      padding: 8px 12px;
+      margin: 0 5px;
+      background: #f5faff;
+      color: #333;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .pagination a:hover {
+      background: #e3f2fd;
+    }
+    .pagination .active {
+      background: #2196f3;
+      color: white;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 25px;
+      margin-top: auto;
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #ffeb3b;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>Bệnh Viện XYZ - Báo Cáo & Thống Kê</h1>
+    <p>Xem báo cáo và thống kê hoạt động của bệnh viện</p>
+    
+    <!-- Icon người dùng -->
+    <div class="user-menu">
+      <div class="user-icon"><i class="fa-solid fa-user-tie"></i></div>
+      <div class="dropdown">
+        <a href="#">Cập nhật thông tin</a>
+        <a href="#">Đăng xuất</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main container -->
+  <div class="container">
+    <!-- Back to Admin Home Button -->
+    <div class="nav-button">
+      <a href="admin.html"><i class="fa-solid fa-arrow-left"></i> Trở về Trang Chủ Admin</a>
+    </div>
+
+    <h1 class="section-title">Báo Cáo & Thống Kê</h1>
+    <div class="welcome-message">
+      <p>📊 Theo dõi hoạt động bệnh viện qua các số liệu và báo cáo chi tiết.</p>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="stats">
+      <div class="stat-card">
+        <i class="fa-solid fa-user-injured"></i>
+        <h3>152</h3>
+        <p>Tổng số bệnh nhân</p>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-calendar-check"></i>
+        <h3>87</h3>
+        <p>Lịch khám hôm nay</p>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-user-md"></i>
+        <h3>25</h3>
+        <p>Tổng số bác sĩ</p>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <input type="date" id="startDate" placeholder="Từ ngày">
+      <input type="date" id="endDate" placeholder="Đến ngày">
+      <button onclick="filterReports()"><i class="fa-solid fa-filter"></i> Lọc</button>
+    </div>
+
+    <!-- Report table -->
+    <table class="report-table" id="reportTable">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Số Lịch Khám</th>
+          <th>Số Bệnh Nhân Mới</th>
+          <th>Số Bác Sĩ Làm Việc</th>
+          <th>Chi Tiết</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-date="2025-10-01">
+          <td>01/10/2025</td>
+          <td>45</td>
+          <td>10</td>
+          <td>20</td>
+          <td class="actions">
+            <a href="report_detail.html?date=2025-10-01">Xem chi tiết</a>
+          </td>
+        </tr>
+        <tr data-date="2025-10-02">
+          <td>02/10/2025</td>
+          <td>50</td>
+          <td>12</td>
+          <td>22</td>
+          <td class="actions">
+            <a href="report_detail.html?date=2025-10-02">Xem chi tiết</a>
+          </td>
+        </tr>
+        <tr data-date="2025-10-03">
+          <td>03/10/2025</td>
+          <td>40</td>
+          <td>8</td>
+          <td>18</td>
+          <td class="actions">
+            <a href="report_detail.html?date=2025-10-03">Xem chi tiết</a>
+          </td>
+        </tr>
+        <tr data-date="2025-10-04">
+          <td>04/10/2025</td>
+          <td>60</td>
+          <td>15</td>
+          <td>23</td>
+          <td class="actions">
+            <a href="report_detail.html?date=2025-10-04">Xem chi tiết</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <a href="#">&laquo;</a>
+      <a href="#" class="active">1</a>
+      <a href="#">2</a>
+      <a href="#">3</a>
+      <a href="#">&raquo;</a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>&copy; 2025 Bệnh Viện XYZ. Mọi quyền được bảo lưu.</p>
+    <p>Liên hệ: <a href="tel:0915737863">0915737863</a> | Email: <a href="mailto:support@benhvienxyz.vn">support@benhvienxyz.vn</a></p>
+    <p>Địa chỉ: 123 Đường Yên Trác, Yên Nghĩa, Hà Nội</p>
+  </div>
+
+<script>
+  const API_PATIENTS = "http://localhost:8080/user-service/api/patients";
+  const API_DOCTORS = "http://localhost:8080/user-service/api/doctors";
+  const API_APPOINTMENTS = "http://localhost:8080/appointment-service/api/appointments";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    setupUserMenu();
+    await loadStatistics();
+    await loadReports();
+  });
+
+  // 🧭 Xử lý menu người dùng
+  function setupUserMenu() {
+    document.querySelector('.user-icon').addEventListener('click', () => {
+      document.querySelector('.user-menu').classList.toggle('active');
+    });
+    document.addEventListener('click', (event) => {
+      const userMenu = document.querySelector('.user-menu');
+      if (!userMenu.contains(event.target)) userMenu.classList.remove('active');
+    });
+  }
+
+  // 📊 Lấy dữ liệu thống kê tổng quan
+  async function loadStatistics() {
+    try {
+      const [patientsRes, doctorsRes, appointmentsRes] = await Promise.all([
+        fetch(API_PATIENTS),
+        fetch(API_DOCTORS),
+        fetch(API_APPOINTMENTS)
+      ]);
+
+      const patients = await patientsRes.json();
+      const doctors = await doctorsRes.json();
+      const appointments = await appointmentsRes.json();
+
+      const totalPatients = patients.length;
+      const totalDoctors = doctors.length;
+      const today = new Date().toISOString().split("T")[0];
+
+      const todayAppointments = appointments.filter(a => {
+        const date = new Date(a.appointmentTime).toISOString().split("T")[0];
+        return date === today;
+      }).length;
+
+      document.querySelectorAll(".stat-card")[0].querySelector("h3").textContent = totalPatients;
+      document.querySelectorAll(".stat-card")[1].querySelector("h3").textContent = todayAppointments;
+      document.querySelectorAll(".stat-card")[2].querySelector("h3").textContent = totalDoctors;
+
+    } catch (err) {
+      console.error("❌ Lỗi khi tải thống kê:", err);
+      alert("⚠️ Không thể tải dữ liệu thống kê!");
+    }
+  }
+
+  // 📅 Hiển thị bảng báo cáo (nhóm theo ngày)
+  async function loadReports() {
+    try {
+      const [patientsRes, doctorsRes, appointmentsRes] = await Promise.all([
+        fetch(API_PATIENTS),
+        fetch(API_DOCTORS),
+        fetch(API_APPOINTMENTS)
+      ]);
+
+      const patients = await patientsRes.json();
+      const doctors = await doctorsRes.json();
+      const appointments = await appointmentsRes.json();
+
+      // Gom nhóm lịch hẹn theo ngày
+      const reportMap = {};
+      appointments.forEach(a => {
+        const date = new Date(a.appointmentTime).toISOString().split("T")[0];
+        if (!reportMap[date]) {
+          reportMap[date] = { appointments: 0, newPatients: 0, activeDoctors: new Set() };
+        }
+        reportMap[date].appointments++;
+        reportMap[date].activeDoctors.add(a.doctorId);
+      });
+
+      // Giả định "bệnh nhân mới" = số bệnh nhân có createdAt cùng ngày (nếu có)
+      // Nếu API không có createdAt, bạn có thể random hoặc bỏ cột này
+      const today = new Date();
+      Object.keys(reportMap).forEach(date => {
+        const newCount = patients.filter(p => {
+          if (!p.createdAt) return false;
+          return new Date(p.createdAt).toISOString().split("T")[0] === date;
+        }).length;
+        reportMap[date].newPatients = newCount;
+      });
+
+      // Render bảng
+      const tbody = document.getElementById("reportTable").querySelector("tbody");
+      tbody.innerHTML = "";
+
+      Object.entries(reportMap)
+        .sort((a, b) => new Date(b[0]) - new Date(a[0])) // sắp xếp mới nhất
+        .forEach(([date, data]) => {
+          const displayDate = new Date(date).toLocaleDateString("vi-VN");
+          tbody.innerHTML += `
+            <tr data-date="${date}">
+              <td>${displayDate}</td>
+              <td>${data.appointments}</td>
+              <td>${data.newPatients}</td>
+              <td>${data.activeDoctors.size}</td>
+              <td class="actions">
+                <a href="report_detail.html?date=${date}">Xem chi tiết</a>
+              </td>
+            </tr>
+          `;
+        });
+
+    } catch (err) {
+      console.error("❌ Lỗi khi tải báo cáo:", err);
+      alert("⚠️ Không thể tải dữ liệu báo cáo!");
+    }
+  }
+
+  // 🔍 Lọc theo khoảng ngày
+  function filterReports() {
+    const startDate = new Date(document.getElementById('startDate').value);
+    const endDate = new Date(document.getElementById('endDate').value);
+    const rows = document.querySelectorAll('#reportTable tbody tr');
+
+    rows.forEach(row => {
+      const rowDate = new Date(row.getAttribute('data-date'));
+      if (startDate && endDate && !isNaN(startDate) && !isNaN(endDate)) {
+        row.style.display = (rowDate >= startDate && rowDate <= endDate) ? '' : 'none';
+      } else {
+        row.style.display = '';
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

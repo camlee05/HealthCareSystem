@@ -1,0 +1,81 @@
+package com.hospital.diagnosis.controller;
+
+import com.hospital.diagnosis.model.Diagnosis;
+import com.hospital.diagnosis.repository.DiagnosisRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+@CrossOrigin(origins = "*") // ✅ Cho phép frontend gọi API
+@RestController
+@RequestMapping("/api/diagnoses")
+public class DiagnosisController {
+
+    private final DiagnosisRepository repo;
+
+    public DiagnosisController(DiagnosisRepository repo) {
+        this.repo = repo;
+    }
+
+    // 🩺 Tạo diagnosis mới
+    @PostMapping
+    public ResponseEntity<?> create(@RequestBody Diagnosis diagnosis) {
+        if (diagnosis.getPatientId() == null || diagnosis.getDoctorId() == null || diagnosis.getAppointmentId() == null) {
+            return ResponseEntity.badRequest().body("Thiếu thông tin bệnh nhân, bác sĩ hoặc lịch hẹn!");
+        }
+
+        diagnosis.setDate(LocalDate.now());
+
+        Diagnosis saved = repo.save(diagnosis);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    // 🩺 Lấy tất cả diagnosis
+    @GetMapping
+    public List<Diagnosis> getAll() {
+        return repo.findAll();
+    }
+
+    // 🩺 Lấy diagnosis theo id
+    @GetMapping("/{id}")
+    public ResponseEntity<Diagnosis> getById(@PathVariable Long id) {
+        return repo.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 🩺 Lấy diagnosis theo appointmentId
+    @GetMapping("/appointment/{appointmentId}")
+    public ResponseEntity<Diagnosis> getByAppointment(@PathVariable UUID appointmentId) {
+        return repo.findByAppointmentId(appointmentId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 🩺 Lấy tất cả diagnosis theo patientId
+    @GetMapping("/patient/{patientId}")
+    public List<Diagnosis> getByPatient(@PathVariable UUID patientId) {
+        return repo.findByPatientId(patientId);
+    }
+
+    // 🩺 Lấy tất cả diagnosis theo doctorId
+    @GetMapping("/doctor/{doctorId}")
+    public List<Diagnosis> getByDoctor(@PathVariable UUID doctorId) {
+        return repo.findByDoctorId(doctorId);
+    }
+
+    // 🗑️ Xóa diagnosis theo id
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (repo.existsById(id)) {
+            repo.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+}

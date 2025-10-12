@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập & Đăng ký</title>
+  <style>
+    /* Giữ nguyên toàn bộ CSS gốc */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%);
+      overflow: hidden;
+    }
+    .container {
+      position: relative; width: 850px; height: 550px; background: white;
+      border-radius: 20px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); overflow: hidden;
+    }
+    .forms-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+    .signin-signup {
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      left: 75%; width: 50%; transition: 1s 0.7s ease-in-out;
+      display: grid; grid-template-columns: 1fr; z-index: 5;
+    }
+    form {
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; padding: 0 4rem;
+      transition: all 0.2s 0.7s; overflow: hidden;
+      grid-column: 1 / 2; grid-row: 1 / 2;
+    }
+    form.sign-up-form { opacity: 0; z-index: 1; }
+    form.sign-in-form { z-index: 2; }
+    .title { font-size: 2rem; color: #0369a1; margin-bottom: 5px; font-weight: 700; }
+    .input-field {
+      max-width: 380px; width: 100%; background-color: #f0f0f0;
+      margin: 8px 0; height: 50px; border-radius: 55px;
+      display: grid; grid-template-columns: 15% 85%;
+      padding: 0 0.4rem; position: relative; transition: 0.3s;
+    }
+    .input-field:hover { background-color: #e8e8e8; }
+    .input-field i { text-align: center; line-height: 50px; color: #acacac; transition: 0.5s; font-size: 1rem; }
+    .input-field input {
+      background: none; outline: none; border: none;
+      line-height: 1; font-weight: 600; font-size: 1rem; color: #333;
+    }
+    .input-field input::placeholder { color: #aaa; font-weight: 500; }
+    .btn {
+      width: 150px; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+      border: none; outline: none; height: 45px; border-radius: 49px;
+      color: #fff; text-transform: uppercase; font-weight: 600;
+      margin: 8px 0; cursor: pointer; transition: 0.5s; font-size: 0.85rem;
+    }
+    .btn:hover {
+      background: linear-gradient(135deg, #0284c7 0%, #0891b2 100%);
+      transform: translateY(-2px); box-shadow: 0 5px 15px rgba(14, 165, 233, 0.4);
+    }
+    .panels-container {
+      position: absolute; height: 100%; width: 100%; top: 0; left: 0;
+      display: grid; grid-template-columns: repeat(2, 1fr);
+    }
+    .panel {
+      display: flex; flex-direction: column; align-items: flex-end;
+      justify-content: space-around; text-align: center; z-index: 6;
+    }
+    .left-panel { pointer-events: all; padding: 3rem 17% 2rem 12%; }
+    .right-panel { pointer-events: none; padding: 3rem 12% 2rem 17%; }
+    .panel .content { color: #fff; transition: transform 0.9s ease-in-out; transition-delay: 0.6s; }
+    .panel h3 { font-weight: 600; line-height: 1; font-size: 1.5rem; margin-bottom: 10px; }
+    .panel p { font-size: 0.95rem; padding: 0.7rem 0; }
+    .btn.transparent {
+      margin: 0; background: none; border: 2px solid #fff;
+      width: 130px; height: 41px; font-weight: 600; font-size: 0.8rem;
+    }
+    .btn.transparent:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
+    .right-panel .image, .right-panel .content { transform: translateX(800px); }
+    .image { width: 100%; transition: transform 1.1s ease-in-out; transition-delay: 0.4s; }
+    .container.sign-up-mode:before { transform: translate(100%, -50%); right: 52%; }
+    .container.sign-up-mode .left-panel .image,
+    .container.sign-up-mode .left-panel .content { transform: translateX(-800px); }
+    .container.sign-up-mode .signin-signup { left: 25%; }
+    .container.sign-up-mode form.sign-up-form { opacity: 1; z-index: 2; }
+    .container.sign-up-mode form.sign-in-form { opacity: 0; z-index: 1; }
+    .container.sign-up-mode .right-panel .image,
+    .container.sign-up-mode .right-panel .content { transform: translateX(0%); }
+    .container.sign-up-mode .left-panel { pointer-events: none; }
+    .container.sign-up-mode .right-panel { pointer-events: all; }
+    .container:before {
+      content: ""; position: absolute; height: 2000px; width: 2000px;
+      top: -10%; right: 48%; transform: translateY(-50%);
+      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%);
+      transition: 1.8s ease-in-out; border-radius: 50%; z-index: 6;
+    }
+    .social-text { padding: 0.5rem 0; font-size: 0.9rem; color: #666; }
+    .social-media { display: flex; justify-content: center; }
+    .social-icon {
+      height: 46px; width: 46px; display: flex; justify-content: center;
+      align-items: center; margin: 0 0.45rem; color: #333; border-radius: 50%;
+      border: 1px solid #333; text-decoration: none; font-size: 1.1rem; transition: 0.3s;
+    }
+    .social-icon:hover { color: #0ea5e9; border-color: #0ea5e9; transform: translateY(-3px); }
+    .social-icon.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="forms-container">
+    <div class="signin-signup">
+
+      <!-- FORM ĐĂNG NHẬP -->
+      <form class="sign-in-form" onsubmit="handleLogin(event)">
+        <h2 class="title">Xin chào! 👋</h2>
+        <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">Chúng tôi rất vui khi bạn quay lại</p>
+        <div class="input-field">
+          <i>👤</i>
+          <input type="text" id="login-username" placeholder="Tên đăng nhập" required />
+        </div>
+        <div class="input-field">
+          <i>🔐</i>
+          <input type="password" id="login-password" placeholder="Mật khẩu" required />
+        </div>
+        <input type="submit" value="Đăng nhập" class="btn solid" />
+        <p class="social-text">Chọn vai trò đăng nhập</p>
+        <div class="social-media">
+          <a href="#" class="social-icon active" onclick="selectLoginRole(event, 'PATIENT')" title="Bệnh nhân"><span>BN</span></a>
+          <a href="#" class="social-icon" onclick="selectLoginRole(event, 'DOCTOR')" title="Bác sĩ"><span>BS</span></a>
+          <a href="#" class="social-icon" onclick="selectLoginRole(event, 'ADMIN')" title="Quản trị"><span>QT</span></a>
+        </div>
+      </form>
+
+      <!-- FORM ĐĂNG KÝ -->
+      <form class="sign-up-form" onsubmit="handleSignup(event)">
+        <h2 class="title">Tạo tài khoản mới 🎉</h2>
+        <div class="input-field">
+          <i>👤</i>
+          <input type="text" id="signup-username" placeholder="Tên đăng nhập" required />
+        </div>
+        <div class="input-field">
+          <i>🔐</i>
+          <input type="password" id="signup-password" placeholder="Mật khẩu" required minlength="6" />
+        </div>
+        <input type="submit" class="btn" value="Đăng ký ngay" />
+        <p class="social-text">Chọn vai trò của bạn</p>
+        <div class="social-media">
+          <a href="#" class="social-icon active" onclick="selectSignupRole(event, 'PATIENT')" title="Bệnh nhân"><span>BN</span></a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="panels-container">
+    <div class="panel left-panel">
+      <div class="content">
+        <h3>Chưa có tài khoản? 😊</h3>
+        <p>Tham gia cùng chúng tôi để trải nghiệm hệ thống quản lý bệnh viện hiện đại!</p>
+        <button class="btn transparent" id="sign-up-btn">Tạo tài khoản mới</button>
+      </div>
+    </div>
+    <div class="panel right-panel">
+      <div class="content">
+        <h3>Chào mừng trở lại! 🌟</h3>
+        <p>Đăng nhập để tiếp tục quản lý công việc và lịch hẹn của bạn.</p>
+        <button class="btn transparent" id="sign-in-btn">Đăng nhập ngay</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const sign_in_btn = document.querySelector("#sign-in-btn");
+  const sign_up_btn = document.querySelector("#sign-up-btn");
+  const container = document.querySelector(".container");
+  let signupRole = "PATIENT";
+  let loginRole = "PATIENT"; 
+
+  sign_up_btn.addEventListener("click", () => container.classList.add("sign-up-mode"));
+  sign_in_btn.addEventListener("click", () => container.classList.remove("sign-up-mode"));
+
+  function selectLoginRole(e, r) {
+    e.preventDefault();
+    loginRole = r; // ✅ lưu lại role được chọn
+    document.querySelectorAll('.sign-in-form .social-icon').forEach(i => i.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+  }
+
+  function selectSignupRole(e, r) {
+    e.preventDefault();
+    signupRole = r;
+    document.querySelectorAll('.sign-up-form .social-icon').forEach(i => i.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+  }
+
+  // --- LOGIN ---
+  async function handleLogin(event) {
+    event.preventDefault();
+    const username = document.getElementById("login-username").value;
+    const password = document.getElementById("login-password").value;
+
+    try {
+      const res = await fetch("http://localhost:8080/users/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, role: loginRole })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      console.log("DEBUG - login response:", data);
+
+      if (res.ok) {
+        localStorage.setItem("userId", data.id);
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("role", data.role);
+        console.log("✅ Saved user info:", localStorage);
+
+        alert(data.message || "Đăng nhập thành công!");
+
+        setTimeout(() => {
+          if (data.role === "ADMIN") window.location.href = "admin/home";
+          else if (data.role === "DOCTOR") window.location.href = "bacsi/home";
+          else window.location.href = "./home";
+        }, 300);
+      } else {
+          if (res.status === 403)
+            alert("❌ Vai trò đăng nhập không khớp với tài khoản!");
+          else
+            alert(data.message || "Sai tên đăng nhập hoặc mật khẩu!");
+        }
+    } catch (err) {
+      console.error(err);
+      alert("Không thể kết nối tới máy chủ!");
+    }
+  }
+
+  // --- SIGNUP ---
+  async function handleSignup(event) {
+    event.preventDefault();
+    const username = document.getElementById("signup-username").value;
+    const password = document.getElementById("signup-password").value;
+
+    try {
+      const res = await fetch("http://localhost:8080/users/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, role: signupRole })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      console.log("DEBUG - signup response:", data);
+
+      if (res.ok) {
+        alert(data.message || "Đăng ký thành công!");
+        container.classList.remove("sign-up-mode");
+      } else {
+        alert(data.message || "Đăng ký thất bại!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Không thể kết nối tới máy chủ!");
+    }
+  }
+</script>
+</body>
+</html>

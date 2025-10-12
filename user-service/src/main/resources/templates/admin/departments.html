@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏥 Quản Lý Khoa - Bệnh Viện XYZ</title>
+  <!-- Font Awesome cho icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #f0f4f8);
+      margin: 0;
+      padding: 0;
+      color: #333;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      padding: 40px 20px 80px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: "";
+      background: url('https://cdn-icons-png.flaticon.com/512/2966/2966487.png') no-repeat center/120px;
+      opacity: 0.15;
+      position: absolute;
+      inset: 0;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 38px;
+      font-weight: bold;
+      position: relative;
+      z-index: 1;
+    }
+    .header p {
+      margin: 10px 0 0;
+      font-size: 18px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* User menu */
+    .user-menu {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      z-index: 2;
+    }
+    .user-icon {
+      font-size: 20px;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      width: 42px;
+      height: 42px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .user-icon:hover {
+      background: rgba(255,255,255,0.25);
+      transform: scale(1.08);
+    }
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      margin-top: 10px;
+      min-width: 180px;
+      overflow: hidden;
+      z-index: 999;
+    }
+    .dropdown a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      transition: background 0.3s;
+    }
+    .dropdown a:hover {
+      background: #f1f1f1;
+    }
+    .user-menu.active .dropdown {
+      display: block;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+      padding: 40px;
+      animation: fadeIn 0.6s ease-in-out;
+      margin: -60px auto 40px;
+      position: relative;
+      z-index: 10;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    h1.section-title {
+      color: #1a3c64;
+      font-size: 30px;
+      margin-bottom: 15px;
+      text-align: center;
+      position: relative;
+    }
+    h1.section-title::after {
+      content: '';
+      width: 60px; height: 4px;
+      background: #2196f3;
+      position: absolute;
+      bottom: -10px; left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+    .welcome-message {
+      text-align: center;
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 35px;
+    }
+
+    /* Navigation button */
+    .nav-button {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .nav-button a {
+      padding: 10px 20px;
+      background: #2196f3;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .nav-button a:hover {
+      background: #1a7bd1;
+    }
+
+    /* Add department form */
+    .add-department-form {
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .add-department-form input, .add-department-form textarea {
+      padding: 12px 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .add-department-form textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    .add-department-form button {
+      padding: 12px 20px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+      align-self: flex-end;
+    }
+    .add-department-form button:hover {
+      background: #388e3c;
+    }
+
+    /* Department table */
+    .department-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .department-table th, .department-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .department-table th {
+      background: #f5faff;
+      color: #1a3c64;
+      font-weight: bold;
+    }
+    .department-table tr:hover {
+      background: #e3f2fd;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+    .actions button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-delete {
+      background: #f44336;
+      color: white;
+    }
+    .btn-delete:hover {
+      background: #d32f2f;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 25px;
+      margin-top: auto;
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #ffeb3b;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>Bệnh Viện XYZ - Quản Lý Khoa</h1>
+    <p>Thêm và quản lý các khoa trong bệnh viện</p>
+    
+    <!-- Icon người dùng -->
+    <div class="user-menu">
+      <div class="user-icon"><i class="fa-solid fa-user-tie"></i></div>
+      <div class="dropdown">
+        <a href="#">Cập nhật thông tin</a>
+        <a href="#">Đăng xuất</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main container -->
+  <div class="container">
+    <!-- Back to Admin Home Button -->
+    <div class="nav-button">
+      <a href="/admin/home"><i class="fa-solid fa-arrow-left"></i> Trở về Trang Chủ Admin</a>
+    </div>
+
+    <h1 class="section-title">Quản Lý Khoa</h1>
+    <div class="welcome-message">
+      <p>🏥 Thêm, xóa và quản lý thông tin các khoa trong bệnh viện.</p>
+    </div>
+
+    <!-- Add department form -->
+    <form class="add-department-form" onsubmit="addDepartment(event)">
+      <input type="text" id="deptName" placeholder="Tên khoa" required>
+      <textarea id="deptDescription" placeholder="Mô tả khoa" required></textarea>
+      <button type="submit"><i class="fa-solid fa-plus"></i> Thêm Khoa</button>
+    </form>
+
+    <!-- Department table -->
+    <table class="department-table" id="departmentTable">
+      <thead>
+        <tr>
+          <th>Tên Khoa</th>
+          <th>Mô Tả</th>
+          <th>Hành Động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-id="KHOA001">
+          <td>Khoa Nội</td>
+          <td>Chuyên khám và điều trị các bệnh lý nội khoa</td>
+          <td class="actions">
+            <button class="btn-delete" onclick="deleteDepartment('KHOA001')">Xóa</button>
+          </td>
+        </tr>
+        <tr data-id="KHOA002">
+          <td>Khoa Ngoại</td>
+          <td>Chuyên phẫu thuật và điều trị các bệnh lý ngoại khoa</td>
+          <td class="actions">
+            <button class="btn-delete" onclick="deleteDepartment('KHOA002')">Xóa</button>
+          </td>
+        </tr>
+        <tr data-id="KHOA003">
+          <td>Khoa Nhi</td>
+          <td>Chăm sóc sức khỏe cho trẻ em</td>
+          <td class="actions">
+            <button class="btn-delete" onclick="deleteDepartment('KHOA003')">Xóa</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>&copy; 2025 Bệnh Viện XYZ. Mọi quyền được bảo lưu.</p>
+    <p>Liên hệ: <a href="tel:0915737863">0915737863</a> | Email: <a href="mailto:support@benhvienxyz.vn">support@benhvienxyz.vn</a></p>
+    <p>Địa chỉ: 123 Đường Yên Trác, Yên Nghĩa, Hà Nội</p>
+  </div>
+
+<script>
+  const API_DEPARTMENTS = "http://localhost:8080/users/departments";
+
+  // 🧭 Khi trang tải → hiển thị danh sách khoa
+  document.addEventListener("DOMContentLoaded", () => {
+    loadDepartments();
+
+    // Dropdown user menu
+    document.querySelector('.user-icon').addEventListener('click', function() {
+      document.querySelector('.user-menu').classList.toggle('active');
+    });
+
+    document.addEventListener('click', function(event) {
+      const userMenu = document.querySelector('.user-menu');
+      if (!userMenu.contains(event.target)) {
+        userMenu.classList.remove('active');
+      }
+    });
+  });
+
+  // 🏥 Lấy danh sách khoa từ backend
+  async function loadDepartments() {
+    try {
+      const res = await fetch(API_DEPARTMENTS);
+      if (!res.ok) throw new Error("Không thể tải danh sách khoa!");
+      const departments = await res.json();
+
+      const tbody = document.querySelector("#departmentTable tbody");
+      tbody.innerHTML = ""; // Xóa dữ liệu cũ
+
+      if (!departments.length) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#777;">Chưa có khoa nào.</td></tr>`;
+        return;
+      }
+
+      departments.forEach(dept => {
+        const row = document.createElement("tr");
+        row.setAttribute("data-id", dept.id);
+        row.innerHTML = `
+          <td>${dept.name}</td>
+          <td>${dept.description || "—"}</td>
+          <td class="actions">
+            <button class="btn-delete" onclick="deleteDepartment('${dept.id}')">🗑️ Xóa</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ Lỗi khi tải danh sách khoa!");
+    }
+  }
+
+  // ➕ Thêm khoa mới
+  async function addDepartment(event) {
+    event.preventDefault();
+    const name = document.getElementById("deptName").value.trim();
+    const description = document.getElementById("deptDescription").value.trim();
+
+    if (!name || !description) {
+      alert("⚠️ Vui lòng nhập đầy đủ tên khoa và mô tả!");
+      return;
+    }
+
+    const newDept = { name, description };
+
+    try {
+      const res = await fetch(API_DEPARTMENTS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newDept)
+      });
+
+      if (res.ok) {
+        alert(`✅ Đã thêm khoa "${name}" thành công!`);
+        document.getElementById("deptName").value = "";
+        document.getElementById("deptDescription").value = "";
+        loadDepartments();
+      } else {
+        const errText = await res.text();
+        alert("❌ Lỗi khi thêm khoa: " + errText);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ Không thể kết nối tới server!");
+    }
+  }
+
+  // ❌ Xóa khoa
+  async function deleteDepartment(id) {
+    if (!confirm("Bạn có chắc chắn muốn xóa khoa này?")) return;
+
+    try {
+      const res = await fetch(`${API_DEPARTMENTS}/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("🗑️ Đã xóa khoa thành công!");
+        loadDepartments();
+      } else {
+        const errText = await res.text();
+        alert("❌ Lỗi khi xóa khoa: " + errText);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ Không thể kết nối tới server!");
+    }
+  }
+</script>
+
+</body>
+</html>

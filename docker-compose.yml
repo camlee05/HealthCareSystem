@@ -1,0 +1,126 @@
+version: "3.9"
+
+services:
+  # --- Database ---
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hospital
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hospital-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hospital"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Eureka Discovery Server ---
+  discovery-server:
+    build: ./discovery-server
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - hospital-net
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- API Gateway ---
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - hospital-net
+    depends_on:
+      - discovery-server
+    volumes:
+      - ./api-gateway/src/main/resources/application.properties:/config/application.properties
+
+  # --- USER SERVICE ---
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    networks:
+      - hospital-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    restart: always
+    volumes:
+      # ⚡ Mount toàn bộ thư mục templates để sửa HTML không cần rebuild
+      - ./user-service/src/main/resources/templates:/app/templates
+    environment:
+      SPRING_THYMELEAF_PREFIX: file:/app/templates/
+      SPRING_THYMELEAF_SUFFIX: .html
+      SPRING_THYMELEAF_CACHE: "false"
+
+  # --- APPOINTMENT SERVICE ---
+  appointment-service:
+    build: ./appointment-service
+    container_name: appointment-service
+    ports:
+      - "8082:8082"
+    networks:
+      - hospital-net
+    depends_on:
+      - postgres
+      - discovery-server
+      - user-service
+
+  # --- DIAGNOSIS SERVICE ---
+  diagnosis-service:
+    build: ./diagnosis-service
+    container_name: diagnosis-service
+    networks:
+      - hospital-net
+    depends_on:
+      - postgres
+      - discovery-server
+      - appointment-service
+
+  # --- NOTIFICATION SERVICE ---
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    networks:
+      - hospital-net
+    depends_on:
+      - postgres
+      - discovery-server
+      - user-service
+
+  # --- RabbitMQ ---
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - hospital-net
+
+# --- Networks and Volumes ---
+networks:
+  hospital-net:
+
+volumes:
+  postgres_data:

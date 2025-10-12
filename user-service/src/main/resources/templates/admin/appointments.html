@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sắp xếp Lịch khám - Hệ thống Bệnh viện</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #1f2937;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+
+    .content { padding: 40px; min-height: 600px; }
+
+    .doctor-header {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .doctor-header h2 { font-size: 2rem; color: #1f2937; margin-bottom: 10px; }
+    .doctor-header p { font-size: 1.1rem; color: #4b5563; }
+
+    .stats-bar { display: flex; justify-content: center; gap: 40px; margin-top: 15px; }
+    .stat-item { text-align: center; }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #4facfe; }
+    .stat-label { font-size: 0.9rem; color: #6b7280; }
+
+    .appointments-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    .appointment-column {
+      background: #f9fafb;
+      border-radius: 15px;
+      padding: 25px;
+      min-height: 400px;
+    }
+    .column-title {
+      font-size: 1.3rem;
+      color: #1f2937;
+      margin-bottom: 20px;
+      text-align: center;
+      padding-bottom: 15px;
+      border-bottom: 3px solid #4facfe;
+    }
+    .appointment-list { display: flex; flex-direction: column; gap: 15px; }
+    .appointment-item {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      border-left: 5px solid #fbbf24;
+      transition: all 0.3s ease;
+    }
+    .appointment-item:hover { transform: translateY(-3px); }
+    .appointment-item.scheduled { border-left-color: #10b981; }
+    .appointment-item.ongoing { border-left-color: #3b82f6; }
+
+    .patient-name { font-size: 1.2rem; font-weight: bold; color: #1f2937; margin-bottom: 8px; }
+    .appointment-details { display: grid; gap: 5px; margin-bottom: 10px; }
+    .appointment-details p { color: #6b7280; font-size: 0.95rem; }
+    .appointment-details strong { color: #374151; }
+
+    .appointment-actions { display: flex; gap: 10px; margin-top: 15px; }
+
+    .btn {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      flex: 1;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .btn-danger { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
+    .btn-view { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+
+    .back-btn { background: #6b7280; padding: 12px 24px; font-size: 16px; }
+    .back-btn:hover { background: #4b5563; }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      background: #10b981;
+      color: white;
+      border-radius: 10px;
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="notification" class="notification"></div>
+
+  <div class="container">
+    <div class="header">
+      <h1>📋 Sắp xếp Lịch khám</h1>
+      <p>Hệ thống quản lý bệnh viện</p>
+    </div>
+
+    <div class="content">
+      <div class="doctor-header">
+        <h2 id="selectedDoctorName">Bác sĩ</h2>
+        <p id="selectedDoctorSpecialty">Chuyên khoa:</p>
+        <div class="stats-bar">
+          <div class="stat-item">
+            <div class="stat-number" id="totalPatients">0</div>
+            <div class="stat-label">Tổng lịch</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="pendingCount">0</div>
+            <div class="stat-label">Chờ xử lý</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="scheduledCount">0</div>
+            <div class="stat-label">Đã xếp lịch</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="appointments-container">
+        <div class="appointment-column">
+          <h3 class="column-title">⏳ Chờ sắp xếp lịch</h3>
+          <div class="appointment-list" id="pendingList"></div>
+        </div>
+
+        <div class="appointment-column">
+          <h3 class="column-title">✅ Đã sắp xếp lịch khám</h3>
+          <div class="appointment-list" id="scheduledList"></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;">
+        <button class="btn back-btn" onclick="backToDoctors()">⬅️ Quay lại danh sách bác sĩ</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API_PATIENTS = "http://localhost:8080/user-service/api/patients";
+  const API_APPOINTMENTS = "http://localhost:8080/appointment-service/api/appointments";
+  let currentDoctor = null, allAppointments = [], allPatients = [];
+
+  // 🩵 Khởi động trang
+  document.addEventListener("DOMContentLoaded", async () => {
+    const savedDoctor = localStorage.getItem("selectedDoctor");
+    if (!savedDoctor) {
+      alert("⚠️ Vui lòng chọn bác sĩ trước!");
+      window.location.href = "/admin/bacsi";
+      return;
+    }
+    currentDoctor = JSON.parse(savedDoctor);
+    document.getElementById("selectedDoctorName").textContent = `BS. ${currentDoctor.name}`;
+    document.getElementById("selectedDoctorSpecialty").textContent = `Chuyên khoa: ${currentDoctor.specialty}`;
+    await fetchData();
+    renderAppointments();
+  });
+
+  // 🩵 Lấy dữ liệu từ API
+  async function fetchData() {
+    const [aRes, pRes] = await Promise.all([fetch(API_APPOINTMENTS), fetch(API_PATIENTS)]);
+    allAppointments = await aRes.json();
+    allPatients = await pRes.json();
+  }
+
+  // 🩵 Hiển thị danh sách lịch hẹn
+  function renderAppointments() {
+    const related = allAppointments.filter(a => a.doctorId === currentDoctor.id || a.doctorId == null);
+    const pending = related.filter(a => a.status === "REGISTERED");
+    const scheduled = related.filter(a => a.status === "SCHEDULED" || a.status === "ONGOING");
+
+    document.getElementById("totalPatients").textContent = related.length;
+    document.getElementById("pendingCount").textContent = pending.length;
+    document.getElementById("scheduledCount").textContent = scheduled.length;
+
+    document.getElementById("pendingList").innerHTML = pending.length
+      ? pending.map(a => createCard(a, false)).join("")
+      : `<p style="text-align:center;color:#999;">Không có lịch cần sắp xếp</p>`;
+
+    document.getElementById("scheduledList").innerHTML = scheduled.length
+      ? scheduled.map(a => createCard(a, true)).join("")
+      : `<p style="text-align:center;color:#999;">Chưa có lịch đã sắp xếp</p>`;
+  }
+
+  // 🩵 Tạo thẻ hiển thị lịch
+  function createCard(appointment, isScheduled) {
+    const patient = allPatients.find(p => p.id === appointment.patientId);
+    const name = patient?.fullName || "Không xác định";
+    const date = new Date(appointment.appointmentTime).toLocaleDateString("vi-VN");
+    const time = new Date(appointment.appointmentTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+    const status = appointment.status;
+
+    return `
+      <div class="appointment-item ${status.toLowerCase()}">
+        <div class="patient-name">👤 ${name}</div>
+        <div class="appointment-details">
+          <p><strong>📅 Ngày:</strong> ${date} <span class="time-badge">⏰ ${time}</span></p>
+          <p><strong>Trạng thái:</strong> ${status}</p>
+        </div>
+        <div class="appointment-actions">
+          ${
+            isScheduled
+              ? `<button class="btn btn-view" onclick="viewMedicalRecord('${patient?.code}')">📋 Xem bệnh án</button>
+                 <button class="btn btn-danger" onclick="updateStatus('${appointment.id}', 'REGISTERED')">↩️ Hủy lịch</button>`
+              : `<button class="btn btn-success" onclick="updateStatus('${appointment.id}', 'SCHEDULED')">✅ Xác nhận lịch</button>`
+          }
+        </div>
+      </div>`;
+  }
+
+  // 🩵 Cập nhật trạng thái lịch hẹn
+  async function updateStatus(id, status) {
+    const body = { status };
+
+    // ✅ Nếu xác nhận → gán doctorId hiện tại
+    if (status === "SCHEDULED") {
+      body.doctorId = currentDoctor.id;
+    }
+
+    // ❌ Nếu hủy → bỏ doctorId
+    if (status === "REGISTERED") {
+      body.doctorId = null;
+    }
+
+    try {
+      const res = await fetch(`${API_APPOINTMENTS}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        showNotification(
+          status === "SCHEDULED"
+            ? "✅ Đã xếp lịch thành công cho bác sĩ!"
+            : "↩️ Đã hủy lịch và bỏ gán bác sĩ!"
+        );
+        await fetchData();
+        renderAppointments();
+      } else {
+        const errText = await res.text();
+        alert("❌ Cập nhật thất bại!\n" + errText);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("⚠️ Lỗi khi gửi yêu cầu đến server!");
+    }
+  }
+
+  // 🩵 Xem bệnh án
+  function viewMedicalRecord(code) {
+    if (!code) return alert("❌ Không tìm thấy mã bệnh nhân!");
+    window.location.href = `/admin/benhan?code=${code}`;
+  }
+
+  // 🩵 Quay lại danh sách bác sĩ
+  function backToDoctors() {
+    window.location.href = "/admin/bacsi";
+  }
+
+  // 🩵 Hiển thị thông báo
+  function showNotification(msg) {
+    const n = document.getElementById("notification");
+    n.textContent = msg;
+    n.style.display = "block";
+    setTimeout(() => (n.style.display = "none"), 3000);
+  }
+</script>
+
+</body>
+</html>

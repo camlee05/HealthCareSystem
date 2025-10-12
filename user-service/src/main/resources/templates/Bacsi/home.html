@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>👨‍⚕️ Hệ Thống Quản Lý Bác Sĩ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #f0f4f8);
+      margin: 0;
+      padding: 0;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      padding: 40px 20px 80px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: "";
+      background: url('https://cdn-icons-png.flaticon.com/512/2966/2966487.png') no-repeat center/120px;
+      opacity: 0.15;
+      position: absolute;
+      inset: 0;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 38px;
+      font-weight: bold;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header p {
+      margin: 10px 0 0;
+      font-size: 18px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    .top-menu {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 1000;
+    }
+
+    .user-info {
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-icon {
+      font-size: 20px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      width: 42px;
+      height: 42px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, transform 0.2s;
+      position: relative;
+    }
+
+    .action-icon:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.08);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background-color: #dc3545;
+      color: white;
+      border-radius: 50%;
+      padding: 4px 7px;
+      font-size: 10px;
+      font-weight: bold;
+      border: 2px solid white;
+      line-height: 1;
+    }
+
+    .user-menu, .notification-menu { position: relative; }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      margin-top: 10px;
+      min-width: 200px;
+      z-index: 999;
+    }
+
+    .dropdown-item {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      transition: background 0.3s;
+    }
+
+    .dropdown a.dropdown-item:hover {
+      background: #f1f1f1;
+    }
+
+    .dropdown .dropdown-header {
+      font-weight: bold;
+      padding: 10px 15px;
+      border-bottom: 1px solid #eee;
+      color: #007bff;
+    }
+
+    .user-menu.active .dropdown,
+    .notification-menu.active .dropdown { display: block; }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+      padding: 40px;
+      animation: fadeIn 0.6s ease-in-out;
+      margin: -60px auto 40px;
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .text-content { flex: 1 1 400px; }
+
+    h1.section-title {
+      color: #1a3c64;
+      font-size: 30px;
+      margin-bottom: 15px;
+      text-align: center;
+      position: relative;
+    }
+
+    h1.section-title::after {
+      content: "";
+      width: 60px;
+      height: 4px;
+      background: #2196f3;
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .welcome-message {
+      text-align: center;
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 35px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #f5faff;
+      padding: 25px 20px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      background: #e3f2fd;
+    }
+
+    .card i {
+      font-size: 45px;
+      color: #2196f3;
+      margin-bottom: 15px;
+      transition: transform 0.3s;
+    }
+
+    .card:hover i { transform: scale(1.15) rotate(5deg); }
+
+    .card h3 { color: #1a3c64; font-size: 20px; margin-bottom: 10px; }
+    .card p { color: #555; font-size: 14px; }
+
+    .illustration { flex: 1 1 300px; text-align: center; }
+    .illustration img { max-width: 280px; width: 100%; border-radius: 12px; }
+
+    .footer {
+      text-align: center;
+      padding: 25px;
+      margin-top: auto;
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      font-size: 14px;
+    }
+
+    .footer a { color: #ffeb3b; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>Bệnh Viện XYZ</h1>
+    <p>Chăm sóc sức khỏe của bạn với sự tận tâm và chuyên nghiệp</p>
+
+    <div class="top-menu">
+      <div class="user-info" id="userInfo">👨‍⚕️ Đang tải...</div>
+
+      <div class="notification-menu">
+        <div class="action-icon notification-icon">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge">3</span>
+        </div>
+        <div class="dropdown">
+          <div class="dropdown-header">Thông báo mới</div>
+          <a href="#" class="dropdown-item">Có 2 bệnh nhân mới đặt lịch hôm nay.</a>
+          <a href="#" class="dropdown-item">Lịch họp hội đồng chuyên môn lúc 15:00.</a>
+          <a href="#" class="dropdown-item">Báo cáo tháng cần hoàn thành trước 10/10.</a>
+        </div>
+      </div>
+
+      <div class="user-menu">
+        <div class="action-icon user-icon">⚙️</div>
+        <div class="dropdown">
+          <a href="#" class="dropdown-item">Cập nhật thông tin</a>
+          <a href="#" class="dropdown-item" onclick="logout()">Đăng xuất</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="text-content">
+      <h1 class="section-title">Trang Chủ Bác Sĩ</h1>
+      <div class="welcome-message">
+        <p>👩‍⚕️ Xin chào Bác sĩ! Hãy quản lý lịch khám và hồ sơ bệnh nhân một cách dễ dàng.</p>
+      </div>
+      <div class="dashboard">
+        <div class="card" onclick="goToSchedule()">
+          <i class="fa-solid fa-calendar-check"></i>
+          <h3>Lịch Khám Bệnh</h3>
+          <p>Xem và quản lý lịch khám trong ngày</p>
+        </div>
+        <div class="card" onclick="goToPatients()">
+          <i class="fa-solid fa-user-injured"></i>
+          <h3>Hồ Sơ Bệnh Nhân</h3>
+          <p>Tra cứu thông tin bệnh nhân chi tiết</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="illustration">
+      <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" alt="Doctor Illustration" />
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2025 Bệnh Viện XYZ. Mọi quyền được bảo lưu.</p>
+    <p>
+      Liên hệ: <a href="tel:0915737863">0915737863</a> | Email:
+      <a href="mailto:support@benhvienxyz.vn">support@benhvienxyz.vn</a>
+    </p>
+    <p>Địa chỉ: 123 Đường Yên Trác, Yên Nghĩa, Hà Nội</p>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const userId = localStorage.getItem("userId");
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+
+    // Nếu chưa đăng nhập → quay lại login
+    if (!userId || !username || !role) {
+      alert("⚠️ Vui lòng đăng nhập để truy cập trang này!");
+      window.location.href = "/login";
+      return;
+    }
+
+    // ✅ Hiển thị thông tin bác sĩ
+    document.getElementById("userInfo").innerHTML = `👨‍⚕️ <strong>${username}</strong> (${role})`;
+
+    // ✅ Lấy thông tin bác sĩ từ user-service
+    const API_DOCTORS = "http://localhost:8080/user-service/api/doctors";
+
+    fetch(API_DOCTORS)
+      .then(res => res.json())
+      .then(doctors => {
+        const doctor = doctors.find(d => d.user === username || d.fullName === username);
+
+        if (doctor) {
+          localStorage.setItem("doctorId", doctor.id);
+          localStorage.setItem("doctorName", doctor.fullName);
+          console.log("✅ Lưu doctorId:", doctor.id);
+        } else {
+          console.warn("⚠️ Không tìm thấy bác sĩ tương ứng với username:", username);
+        }
+      })
+      .catch(err => console.error("❌ Lỗi khi lấy danh sách bác sĩ:", err));
+  });
+
+  function goToSchedule() {
+    window.location.href = "/bacsi/lichkham";
+  }
+
+  function goToPatients() {
+    window.location.href = "/bacsi/benhnhan";
+  }
+
+  function logout() {
+    localStorage.clear();
+    alert("Đã đăng xuất!");
+    window.location.href = "/login";
+  }
+
+  // ✅ Dropdown toggle
+  document.addEventListener("DOMContentLoaded", function () {
+    const userMenu = document.querySelector(".user-menu");
+    const notificationMenu = document.querySelector(".notification-menu");
+    const userIcon = document.querySelector(".user-icon");
+    const notificationIcon = document.querySelector(".notification-icon");
+
+    userIcon.onclick = (e) => {
+      e.stopPropagation();
+      notificationMenu.classList.remove("active");
+      userMenu.classList.toggle("active");
+    };
+
+    notificationIcon.onclick = (e) => {
+      e.stopPropagation();
+      userMenu.classList.remove("active");
+      notificationMenu.classList.toggle("active");
+      document.querySelector(".notification-badge").style.display = "none";
+    };
+
+    document.addEventListener("click", (e) => {
+      if (!userMenu.contains(e.target) && !notificationMenu.contains(e.target)) {
+        userMenu.classList.remove("active");
+        notificationMenu.classList.remove("active");
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

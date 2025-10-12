@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thông Tin Bệnh Nhân</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+      padding: 30px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      color: #1a3c64;
+      font-size: 28px;
+      margin-bottom: 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    h1::after {
+      content: '';
+      width: 50px;
+      height: 4px;
+      background: #2196f3;
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .info-section {
+      background: #f5faff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .medical-record {
+      background: #e8f0fe;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      transition: all 0.3s;
+    }
+
+    .medical-record:hover {
+      transform: scale(1.02);
+    }
+
+    button {
+      background: #2196f3;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s;
+      margin: 5px;
+    }
+
+    button:hover {
+      background: #1976d2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .back-btn {
+      background: #6c757d;
+    }
+
+    .back-btn:hover {
+      background: #5a6268;
+    }
+
+    .loading, .error {
+      text-align: center;
+      color: #555;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Thông Tin Bệnh Nhân</h1>
+    <div id="patientInfo" class="loading">Đang tải dữ liệu...</div>
+    <div id="medicalRecords"></div>
+    <button onclick="goToNext()">Tiếp Theo</button>
+    <button class="back-btn" onclick="goToBack()">Quay Lại</button>
+  </div>
+
+  <script>
+    const API_PATIENT = "http://localhost:8080/user-service/api/patients";
+    const API_APPOINT = "http://localhost:8080/appointment-service/api/appointments/patient";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get("id");
+
+    async function loadPatientInfo() {
+      const infoDiv = document.getElementById("patientInfo");
+      const recordDiv = document.getElementById("medicalRecords");
+
+      if (!patientId) {
+        infoDiv.innerHTML = `<p class="error">Không tìm thấy ID bệnh nhân!</p>`;
+        return;
+      }
+
+      try {
+        // 🔹 Lấy thông tin bệnh nhân
+        const patientRes = await fetch(`${API_PATIENT}/${patientId}`);
+        if (!patientRes.ok) throw new Error("Không tìm thấy thông tin bệnh nhân!");
+        const patient = await patientRes.json();
+
+        infoDiv.innerHTML = `
+          <div class="info-section">
+            <h2>${patient.fullName}</h2>
+            <p><strong>Mã BN:</strong> ${patient.code || "-"}</p>
+            <p><strong>Giới tính:</strong> ${patient.gender === "female" ? "Nữ" : "Nam"}</p>
+            <p><strong>SĐT:</strong> ${patient.phone || "-"}</p>
+            <p><strong>Địa chỉ:</strong> ${patient.address || "-"}</p>
+          </div>
+        `;
+
+        // 🔹 Lấy danh sách lịch khám của bệnh nhân
+        const appRes = await fetch(`${API_APPOINT}/${patientId}`);
+        if (!appRes.ok) throw new Error("Không lấy được lịch khám!");
+        const appointments = await appRes.json();
+
+        let html = "<h3>Bệnh Án / Lịch Sử Khám:</h3>";
+        if (appointments.length > 0) {
+          appointments.forEach(appt => {
+            const date = new Date(appt.appointmentTime).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
+            html += `
+              <div class="medical-record">
+                <p><strong>Ngày giờ:</strong> ${date}</p>
+                <p><strong>Bác sĩ ID:</strong> ${appt.doctorId}</p>
+                <p><strong>Trạng thái:</strong> ${appt.status}</p>
+              </div>
+            `;
+          });
+        } else {
+          html += `<p>Chưa có lịch khám hoặc bệnh án nào.</p>`;
+        }
+
+        recordDiv.innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        infoDiv.innerHTML = `<p class="error">${err.message}</p>`;
+      }
+    }
+
+    function goToNext() {
+      window.location.href = `/bacsi/addbenhan?id=${patientId}`;
+    }
+
+    function goToBack() {
+      window.location.href = '/bacsi/lichkham';
+    }
+
+    document.addEventListener("DOMContentLoaded", loadPatientInfo);
+  </script>
+</body>
+</html>

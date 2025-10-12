@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản lý Bác sĩ - Hệ thống Bệnh viện</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .content {
+      padding: 40px;
+      min-height: 600px;
+    }
+
+    .add-doctor-form {
+      background: #f8f9ff;
+      padding: 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      border: 2px solid #e3e8ff;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #374151;
+      font-weight: 600;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #4facfe;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(79,172,254,0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+
+    .btn-danger:hover {
+      box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+    }
+
+    .doctors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .doctor-card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      border: 2px solid #f3f4f6;
+      transition: all 0.3s ease;
+    }
+
+    .doctor-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      border-color: #4facfe;
+    }
+
+    .doctor-info h3 {
+      color: #1f2937;
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+    }
+
+    .doctor-info p { color: #6b7280; margin-bottom: 5px; }
+
+    .doctor-actions {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      background: #10b981;
+      color: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      display: none;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .form-row { grid-template-columns: 1fr; }
+      .doctors-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="notification" class="notification"></div>
+
+  <div class="container">
+    <div class="header">
+      <h1>🏥 Quản lý Bác sĩ</h1>
+      <p>Hệ thống quản lý bệnh viện</p>
+    </div>
+
+    <div class="content">
+      <div class="add-doctor-form">
+        <h3 style="margin-bottom: 20px; color: #374151;">➕ Thêm Bác sĩ Mới</h3>
+        <form id="doctorForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="doctorName">Họ và tên:</label>
+              <input type="text" id="doctorName" required placeholder="Nhập họ tên bác sĩ" />
+            </div>
+            <div class="form-group">
+              <label for="doctorPhone">Số điện thoại:</label>
+              <input type="tel" id="doctorPhone" required placeholder="0901234567" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="doctorDepartment">Chuyên khoa:</label>
+              <select id="doctorDepartment" required>
+                <option value="">Đang tải danh sách khoa...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="username">Tài khoản đăng nhập:</label>
+              <input type="text" id="username" required placeholder="vd: bacsi.nguyenvana" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Mật khẩu:</label>
+            <input type="password" id="password" required placeholder="Nhập mật khẩu ban đầu" />
+          </div>
+
+          <button type="submit" class="btn">Thêm Bác sĩ</button>
+        </form>
+      </div>
+
+      <h2 style="margin-bottom: 30px; color: #1f2937; text-align: center;">Danh sách Bác sĩ</h2>
+      <div class="doctors-grid" id="doctorsGrid"></div>
+
+      <a href="/admin/home" class="btn" style="margin-top:20px;display:inline-block;">⬅️ Quay lại Trang chủ</a>
+    </div>
+  </div>
+
+  <script>
+    const API_DOCTORS = "http://localhost:8080/user-service/api/doctors";
+    const API_DEPARTMENTS = "http://localhost:8080/users/departments";
+
+    function showNotification(msg, success = true) {
+      const n = document.getElementById("notification");
+      n.textContent = msg;
+      n.style.background = success ? "#10b981" : "#ef4444";
+      n.style.display = "block";
+      setTimeout(() => (n.style.display = "none"), 3000);
+    }
+
+    async function loadDepartments() {
+      const select = document.getElementById("doctorDepartment");
+      try {
+        const res = await fetch(API_DEPARTMENTS);
+        if (!res.ok) throw new Error("Lỗi tải danh sách khoa");
+        const depts = await res.json();
+        select.innerHTML =
+          '<option value="">Chọn khoa</option>' +
+          depts.map((d) => `<option value="${d.id}">${d.name}</option>`).join("");
+      } catch (err) {
+        console.error(err);
+        select.innerHTML = '<option value="">Không thể tải danh sách khoa</option>';
+        showNotification("❌ Lỗi tải danh sách khoa", false);
+      }
+    }
+
+    async function fetchDoctors() {
+      try {
+        const res = await fetch(API_DOCTORS);
+        if (!res.ok) throw new Error("Không thể tải danh sách bác sĩ");
+        const data = await res.json();
+        renderDoctors(data);
+      } catch (err) {
+        console.error(err);
+        showNotification("❌ Lỗi tải danh sách bác sĩ", false);
+      }
+    }
+
+    document.getElementById("doctorForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const deptId = document.getElementById("doctorDepartment").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      if (!deptId || !username || !password) {
+        showNotification("⚠️ Vui lòng điền đầy đủ thông tin!", false);
+        return;
+      }
+
+      const doctor = {
+        fullName: document.getElementById("doctorName").value,
+        phone: document.getElementById("doctorPhone").value,
+        departmentId: deptId,
+        username,
+        password
+      };
+
+      try {
+        const res = await fetch(API_DOCTORS, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(doctor)
+        });
+        if (!res.ok) throw new Error("Không thể thêm bác sĩ");
+        showNotification("✅ Đã thêm bác sĩ thành công!");
+        e.target.reset();
+        fetchDoctors();
+      } catch (err) {
+        console.error(err);
+        showNotification("❌ Lỗi khi thêm bác sĩ", false);
+      }
+    });
+
+    async function deleteDoctor(id) {
+      if (!confirm("Bạn có chắc chắn muốn xóa bác sĩ này?")) return;
+      try {
+        const res = await fetch(`${API_DOCTORS}/${id}`, { method: "DELETE" });
+        if (res.status === 204) {
+          showNotification("🗑️ Đã xóa bác sĩ thành công!");
+          fetchDoctors();
+        } else throw new Error("Xóa thất bại");
+      } catch (err) {
+        console.error(err);
+        showNotification("❌ Không thể xóa bác sĩ", false);
+      }
+    }
+
+    // ✅ Khi click “Sắp xếp lịch”
+    function selectDoctor(doctor) {
+      localStorage.setItem("selectedDoctor", JSON.stringify({
+        id: doctor.id,
+        name: doctor.fullName,
+        specialty: doctor.department || "Chưa rõ"
+      }));
+      window.location.href = "/admin/lichhen";
+    }
+
+    function renderDoctors(doctors) {
+      const grid = document.getElementById("doctorsGrid");
+      if (!doctors.length) {
+        grid.innerHTML = `<p style="text-align:center;color:#555;">Chưa có bác sĩ nào.</p>`;
+        return;
+      }
+
+      grid.innerHTML = doctors.map((d) => `
+        <div class="doctor-card">
+          <div class="doctor-info">
+            <h3>${d.fullName}</h3>
+            <p><strong>🏥 Khoa:</strong> ${d.department || "—"}</p>
+            <p><strong>📞 Điện thoại:</strong> ${d.phone || "—"}</p>
+            <p><strong>👤 Mã tài khoản:</strong> ${d.user || "—"}</p>
+          </div>
+          <div class="doctor-actions">
+            <button class="btn" onclick='selectDoctor(${JSON.stringify(d)})'>🗓️ Sắp xếp lịch</button>
+            <button class="btn btn-danger" onclick="deleteDoctor('${d.id}')">Xóa</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadDepartments();
+      fetchDoctors();
+    });
+  </script>
+</body>
+</html>

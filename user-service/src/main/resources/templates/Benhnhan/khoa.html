@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt Lịch Khám - Bước 1: Chọn Khoa</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 28px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        p.step-info {
+            font-size: 16px;
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+        .departments {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .department-card {
+            background-color: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .department-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        .department-card.selected {
+            border-color: #28a745;
+            background-color: #e8f5e9;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+        }
+        .department-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .department-desc {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .next-btn {
+            margin-top: 30px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: none;
+        }
+        .back-home-btn {
+            margin-top: 30px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+        }
+        .back-home-btn:hover { background-color: #545b62; }
+        .next-btn:hover { background-color: #0056b3; }
+        .next-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Đặt Lịch Khám Bệnh</h1>
+    <p class="step-info">Bước 1: Chọn khoa khám phù hợp với tình trạng sức khỏe của bạn.</p>
+    
+    <div class="departments" id="departmentsContainer">
+        <!-- Khoa sẽ được load từ API -->
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:10px;">
+        <button class="back-home-btn" id="backHome">Quay về Trang Chủ</button>
+        <button class="next-btn" id="nextStep">Tiếp Theo</button>
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById("departmentsContainer");
+    const nextBtn = document.getElementById("nextStep");
+    let selectedDept = null;
+
+    // ✅ Gọi API qua API Gateway (8080)
+    fetch("http://localhost:8080/users/departments")
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP status " + res.status);
+            return res.json();
+        })
+        .then(data => {
+            container.innerHTML = ""; // clear
+            data.forEach(dept => {
+                const card = document.createElement("div");
+                card.classList.add("department-card");
+                card.dataset.id = dept.id;
+                card.dataset.name = dept.name;
+                card.innerHTML = `
+                    <div class="department-name">${dept.name}</div>
+                    <div class="department-desc">${dept.description || ""}</div>
+                `;
+                card.addEventListener("click", () => {
+                    document.querySelectorAll(".department-card").forEach(c => c.classList.remove("selected"));
+                    card.classList.add("selected");
+                    selectedDept = { id: dept.id, name: dept.name };
+                    nextBtn.style.display = "block";
+                    nextBtn.disabled = false;
+                });
+                container.appendChild(card);
+            });
+        })
+        .catch(err => {
+            container.innerHTML = "<p style='color:red'>❌ Lỗi tải danh sách khoa</p>";
+            console.error("API Error:", err);
+        });
+
+    nextBtn.addEventListener("click", () => {
+        if (selectedDept) {
+            window.location.href = `./ngaygio?deptId=${encodeURIComponent(selectedDept.id)}&deptName=${encodeURIComponent(selectedDept.name)}`;
+        }
+    });
+
+    document.getElementById("backHome").addEventListener("click", () => {
+        window.location.href = "./home";
+    });
+</script>
+</body>
+</html>

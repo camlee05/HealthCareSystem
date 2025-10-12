@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bệnh án - Hệ thống Bệnh viện</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #1f2937;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .patient-header {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .patient-header h2 {
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .patient-header p {
+            font-size: 1.1rem;
+            color: #4b5563;
+            margin: 5px 0;
+        }
+
+        .medical-record {
+            background: white;
+            border-radius: 15px;
+        }
+
+        .record-section {
+            margin-bottom: 25px;
+            padding: 25px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border-left: 5px solid #4facfe;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .record-section h4 {
+            color: #1f2937;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .record-section h4::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: #4facfe;
+            border-radius: 2px;
+        }
+
+        .record-section p {
+            margin-bottom: 10px;
+            line-height: 1.8;
+            color: #4b5563;
+        }
+
+        .record-section strong {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .prescription-list {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .prescription-item {
+            padding: 12px;
+            background: #f0f9ff;
+            border-left: 3px solid #3b82f6;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        .prescription-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .prescription-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .prescription-details {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .vital-signs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .vital-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+        }
+
+        .vital-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4facfe;
+            margin: 10px 0;
+        }
+
+        .vital-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .back-btn {
+            background: #6b7280;
+        }
+
+        .back-btn:hover {
+            background: #4b5563;
+            box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4);
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .btn-print:hover {
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .action-buttons {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin-top: 15px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e5e7eb;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4facfe;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #e5e7eb;
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: #4facfe;
+            margin-bottom: 5px;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .action-buttons, button {
+                display: none;
+            }
+            .badge {
+                border: 1px solid currentColor;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .vital-signs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Bệnh án Điện tử</h1>
+            <p>Hệ thống quản lý bệnh viện - Trang 3/3</p>
+        </div>
+
+        <div class="content">
+            <div class="patient-header">
+                <h2 id="selectedPatientName">👤 Nguyễn Văn Hùng</h2>
+                <p id="selectedPatientInfo">
+                    <strong>Tuổi:</strong> 45 | <strong>Giới tính:</strong> Nam | <strong>SĐT:</strong> 0911111111
+                </p>
+                <p id="selectedDoctorInfo">
+                    <strong>Bác sĩ khám:</strong> BS. Nguyễn Văn An - Nội khoa
+                </p>
+            </div>
+
+            <div class="medical-record">
+                <!-- Thông tin cơ bản -->
+                <div class="record-section">
+                    <h4>🆔 Thông tin cơ bản</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <p><strong>Mã bệnh nhân:</strong> <span id="patientId">BN001234</span></p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Ngày sinh:</strong> <span id="patientDob">15/03/1980</span></p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Số điện thoại:</strong> <span id="recordPatientPhone">0911111111</span></p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>BHYT:</strong> <span id="insurance">DN4020030012345</span></p>
+                        </div>
+                        <div class="info-item" style="grid-column: 1 / -1;">
+                            <p><strong>Địa chỉ:</strong> <span id="patientAddress">123 Đường Nguyễn Huệ, Quận 1, TP.HCM</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dấu hiệu sinh tồn -->
+                <div class="record-section">
+                    <h4>❤️ Dấu hiệu sinh tồn</h4>
+                    <div class="vital-signs">
+                        <div class="vital-card">
+                            <div class="vital-label">Huyết áp</div>
+                            <div class="vital-value" id="bloodPressure">120/80</div>
+                            <div class="vital-label">mmHg</div>
+                        </div>
+                        <div class="vital-card">
+                            <div class="vital-label">Nhịp tim</div>
+                            <div class="vital-value" id="heartRate">78</div>
+                            <div class="vital-label">bpm</div>
+                        </div>
+                        <div class="vital-card">
+                            <div class="vital-label">Nhiệt độ</div>
+                            <div class="vital-value" id="temperature">36.8</div>
+                            <div class="vital-label">°C</div>
+                        </div>
+                        <div class="vital-card">
+                            <div class="vital-label">Cân nặng</div>
+                            <div class="vital-value" id="weight">68</div>
+                            <div class="vital-label">kg</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Triệu chứng và chẩn đoán -->
+                <div class="record-section">
+                    <h4>🩺 Triệu chứng và Chẩn đoán</h4>
+                    <p><strong>Lý do khám:</strong> <span id="visitReason">Đau dạ dày, khó tiêu, ợ chua</span></p>
+                    <p><strong>Triệu chứng chính:</strong> <span id="symptoms">Đau vùng thượng vị, buồn nôn sau khi ăn, ợ chua, đầy hơi. Tình trạng kéo dài 3 ngày.</span></p>
+                    <p><strong>Khám lâm sàng:</strong> <span id="examination">Bụng mềm, đau nhẹ vùng thượng vị khi ấn. Không sờ thấy khối u. Gan lách không to.</span></p>
+                    <p>
+                        <strong>Chẩn đoán:</strong> 
+                        <span id="diagnosis">Viêm dạ dày cấp</span>
+                        <span class="badge badge-warning">Cấp tính</span>
+                    </p>
+                    <p><strong>ICD-10:</strong> <span id="icd10">K29.1 - Acute Gastritis</span></p>
+                </div>
+
+                <!-- Xét nghiệm -->
+                <div class="record-section">
+                    <h4>🔬 Kết quả Xét nghiệm</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <p><strong>Công thức máu:</strong></p>
+                            <p>• WBC: 8.2 x10⁹/L <span class="badge badge-success">Bình thường</span></p>
+                            <p>• RBC: 4.8 x10¹²/L</p>
+                            <p>• Hb: 140 g/L</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Sinh hóa máu:</strong></p>
+                            <p>• Glucose: 5.2 mmol/L <span class="badge badge-success">Bình thường</span></p>
+                            <p>• ALT: 28 U/L</p>
+                            <p>• AST: 32 U/L</p>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px;"><strong>Siêu âm bụng:</strong> Niêm mạc dạ dày dày lên, có dấu hiệu viêm. Gan, mật, tụy, lách không có bất thường.</p>
+                </div>
+
+                <!-- Đơn thuốc -->
+                <div class="record-section">
+                    <h4>💊 Đơn thuốc</h4>
+                    <p><strong>Ngày kê đơn:</strong> <span id="prescriptionDate">02/10/2025</span></p>
+                    <div class="prescription-list" id="prescriptionList">
+                        <div class="prescription-item">
+                            <div class="prescription-name">1. Omeprazole 20mg</div>
+                            <div class="prescription-details">
+                                📦 Số lượng: 14 viên | 💊 Liều dùng: Sáng 1 viên, tối 1 viên trước ăn 30 phút | ⏰ Thời gian: 7 ngày
+                            </div>
+                        </div>
+                        <div class="prescription-item">
+                            <div class="prescription-name">2. Domperidone 10mg</div>
+                            <div class="prescription-details">
+                                📦 Số lượng: 15 viên | 💊 Liều dùng: 3 lần/ngày, trước ăn 30 phút | ⏰ Thời gian: 5 ngày
+                            </div>
+                        </div>
+                        <div class="prescription-item">
+                            <div class="prescription-name">3. Simethicone 80mg</div>
+                            <div class="prescription-details">
+                                📦 Số lượng: 15 viên | 💊 Liều dùng: 3 lần/ngày sau ăn | ⏰ Thời gian: 5 ngày
+                            </div>
+                        </div>
+                        <div class="prescription-item">
+                            <div class="prescription-name">4. Sucralfate 1g</div>
+                            <div class="prescription-details">
+                                📦 Số lượng: 20 gói | 💊 Liều dùng: Ngày 4 lần, trước ăn và trước ngủ | ⏰ Thời gian: 5 ngày
+                            </div>
+                        </div>
+                    </div>
+                    <p style="margin-top: 15px; color: #dc2626;"><strong>⚠️ Lưu ý:</strong> Uống đủ liều, đúng giờ. Không tự ý ngừng thuốc khi thấy đỡ.</p>
+                </div>
+
+                <!-- Lời khuyên -->
+                <div class="record-section">
+                    <h4>📝 Lời khuyên và Chế độ</h4>
+                    <p><strong>Chế độ ăn uống:</strong></p>
+                    <ul style="margin-left: 20px; line-height: 1.8; color: #4b5563;">
+                        <li>Ăn nhẹ nhàng, chia nhỏ nhiều bữa (5-6 bữa/ngày)</li>
+                        <li>Tránh thức ăn cay nóng, chua, nhiều dầu mỡ</li>
+                        <li>Không uống rượu bia, cà phê, nước ngọt có gas</li>
+                        <li>Ăn nhiều rau xanh, trái cây không chua</li>
+                        <li>Uống nhiều nước, ít nhất 2 lít/ngày</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><strong>Sinh hoạt:</strong></p>
+                    <ul style="margin-left: 20px; line-height: 1.8; color: #4b5563;">
+                        <li>Nghỉ ngơi đầy đủ, tránh căng thẳng</li>
+                        <li>Không hút thuốc lá</li>
+                        <li>Tập thể dục nhẹ nhàng sau khi hết đau</li>
+                        <li>Ngủ đủ 7-8 tiếng/đêm</li>
+                    </ul>
+                </div>
+
+                <!-- Lịch tái khám -->
+                <div class="record-section">
+                    <h4>📅 Lịch Tái khám</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <p><strong>Ngày tái khám:</strong> <span id="followUpDate">09/10/2025</span></p>
+                            <p><strong>Thời gian:</strong> 09:00 AM</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Bác sĩ khám:</strong> <span id="followUpDoctor">BS. Nguyễn Văn An</span></p>
+                            <p><strong>Phòng khám:</strong> Phòng 102 - Nội khoa</p>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; color: #dc2626;"><strong>⚠️ Lưu ý:</strong> Nếu có biểu hiện nôn ra máu, đại tiện phân đen, đau bụng dữ dội thì đến bệnh viện ngay lập tức.</p>
+                </div>
+
+                <!-- Lịch sử khám bệnh -->
+                <div class="record-section">
+                    <h4>📜 Lịch sử Khám bệnh</h4>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">02/10/2025</div>
+                            <div class="timeline-content">
+                                <strong>Viêm dạ dày cấp</strong><br>
+                                Bác sĩ: BS. Nguyễn Văn An<br>
+                                Điều trị: Omeprazole, Domperidone, Sucralfate
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">15/06/2025</div>
+                            <div class="timeline-content">
+                                <strong>Khám sức khỏe định kỳ</strong><br>
+                                Bác sĩ: BS. Trần Thị Bình<br>
+                                Kết quả: Bình thường
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">20/01/2025</div>
+                            <div class="timeline-content">
+                                <strong>Cảm cúm thông thường</strong><br>
+                                Bác sĩ: BS. Phạm Thu Duyên<br>
+                                Điều trị: Paracetamol, nghỉ ngơi
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ghi chú của bác sĩ -->
+                <div class="record-section">
+                    <h4>👨‍⚕️ Ghi chú của Bác sĩ</h4>
+                    <p id="doctorNotes" style="font-style: italic; color: #4b5563; line-height: 1.8;">
+                        Bệnh nhân có tiền sử làm việc căng thẳng, thường xuyên bỏ bữa. Cần điều chỉnh lối sống, ăn uống đều đặn. 
+                        Theo dõi đáp ứng với điều trị sau 5-7 ngày. Nếu không đỡ hoặc nặng hơn cần nội soi dạ dày - tá tràng để đánh giá chính xác tổn thương.
+                        Đã tư vấn bệnh nhân về chế độ ăn uống và sinh hoạt. Bệnh nhân hiểu rõ và cam kết tuân thủ điều trị.
+                    </p>
+                    <p style="margin-top: 15px;">
+                        <strong>Chữ ký:</strong> BS. Nguyễn Văn An<br>
+                        <strong>Ngày:</strong> 02/10/2025 10:30 AM
+                    </p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn back-btn" onclick="backToAppointments()">⬅️ Quay lại lịch hẹn</button>
+                <button class="btn btn-print" onclick="printRecord()">🖨️ In bệnh án</button>
+                <button class="btn" onclick="sendEmail()">📧 Gửi Email</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+  const API_PATIENTS = "http://localhost:8080/user-service/api/patients";
+  const API_APPOINTMENTS = "http://localhost:8080/appointment-service/api/appointments";
+
+  // Khi tải trang
+  document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const patientCode = params.get("code");
+
+    if (!patientCode) {
+      alert("❌ Không tìm thấy mã bệnh nhân trong URL!");
+      window.location.href = "/admin/home";
+      return;
+    }
+
+    try {
+      // --- 1️⃣ Lấy danh sách bệnh nhân ---
+      const patientRes = await fetch(API_PATIENTS);
+      const patients = await patientRes.json();
+      const patient = patients.find(p => p.code === patientCode);
+
+      if (!patient) {
+        alert("❌ Không tìm thấy bệnh nhân có mã: " + patientCode);
+        return;
+      }
+
+      // --- 2️⃣ Lấy danh sách lịch hẹn ---
+      const appointmentRes = await fetch(API_APPOINTMENTS);
+      const appointments = await appointmentRes.json();
+      const appointment = appointments.find(a => a.patientId === patient.id);
+
+      // --- 3️⃣ Cập nhật thông tin bệnh nhân ---
+      document.getElementById("selectedPatientName").textContent = `👤 ${patient.fullName}`;
+      document.getElementById("patientId").textContent = patient.code;
+      document.getElementById("recordPatientPhone").textContent = patient.phone || "—";
+      document.getElementById("patientAddress").textContent = patient.address || "—";
+      document.getElementById("selectedPatientInfo").innerHTML = `
+        <strong>Giới tính:</strong> ${patient.gender || "—"} |
+        <strong>SĐT:</strong> ${patient.phone || "—"}
+      `;
+
+      // --- 4️⃣ Hiển thị bác sĩ và trạng thái ---
+      let statusLabel = "Không xác định";
+      let statusColor = "badge-info";
+      let doctorText = "Chưa có bác sĩ";
+
+      if (appointment) {
+        switch (appointment.status) {
+          case "REGISTERED":
+            statusLabel = "Đã đăng ký";
+            statusColor = "badge-info";
+            break;
+          case "ONGOING":
+            statusLabel = "Đang khám";
+            statusColor = "badge-warning";
+            break;
+          case "COMPLETED":
+            statusLabel = "Đã khám xong";
+            statusColor = "badge-success";
+            break;
+          case "CANCELED":
+            statusLabel = "Đã hủy";
+            statusColor = "badge-danger";
+            break;
+        }
+
+        // Bác sĩ
+        doctorText = appointment.doctorId 
+          ? `BS. ${appointment.doctorId}` 
+          : "Chưa phân công";
+      }
+
+      document.getElementById("selectedDoctorInfo").innerHTML = `
+        <strong>Bác sĩ khám:</strong> ${doctorText} 
+        <span class="badge ${statusColor}">${statusLabel}</span>
+      `;
+
+      // --- 5️⃣ Hiển thị lịch tái khám nếu có appointmentTime ---
+      if (appointment && appointment.appointmentTime) {
+        const date = new Date(appointment.appointmentTime);
+        const formattedDate = date.toLocaleDateString("vi-VN");
+        const formattedTime = date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+
+        document.getElementById("followUpDate").textContent = formattedDate;
+        document.querySelector("#followUpDoctor").textContent = doctorText;
+      }
+
+    } catch (err) {
+      console.error("❌ Lỗi tải dữ liệu:", err);
+      alert("Không thể tải dữ liệu bệnh án. Vui lòng thử lại!");
+    }
+  });
+
+  // Quay lại danh sách bệnh nhân
+  function backToAppointments() {
+    window.location.href = "/admin/home";
+  }
+
+  // In bệnh án
+  function printRecord() {
+    window.print();
+  }
+
+  // Gửi email giả lập
+  function sendEmail() {
+    alert("📧 Đã gửi bệnh án tới email bệnh nhân!");
+  }
+</script>
+
+</body>
+</html>

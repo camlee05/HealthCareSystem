@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đặt Lịch Khám - Bước 2: Chọn Ngày Giờ</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f7fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #333;
+    }
+    .container {
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      font-size: 28px;
+      color: #007bff;
+      margin-bottom: 10px;
+    }
+    p.step-info {
+      font-size: 16px;
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+    .selected-dept {
+      background-color: #e8f5e9;
+      border: 1px solid #28a745;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 30px;
+      font-size: 16px;
+      color: #28a745;
+    }
+    .time-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .time-slot-card {
+      background-color: #f8f9fa;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .time-slot-card:hover {
+      border-color: #007bff;
+      box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+      transform: translateY(-3px);
+    }
+    .time-slot-card.selected {
+      border-color: #28a745;
+      background-color: #e8f5e9;
+      box-shadow: 0 4px 15px rgba(40,167,69,0.2);
+    }
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .back-btn, .next-btn {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .back-btn:hover { background-color: #545b62; }
+    .next-btn {
+      background-color: #007bff;
+      display: none;
+    }
+    .next-btn:hover { background-color: #0056b3; }
+    .next-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Đặt Lịch Khám Bệnh</h1>
+    <p class="step-info">Bước 2: Chọn ngày và giờ khám phù hợp.</p>
+
+    <div class="selected-dept" id="selectedDeptDisplay">
+      Khoa đã chọn: -
+    </div>
+
+    <div class="navigation">
+      <button class="back-btn" id="backBtn">Quay Lại Bước 1</button>
+    </div>
+
+    <div class="date-selector">
+      <label for="appointmentDate">Chọn ngày khám:</label>
+      <input type="date" id="appointmentDate" class="date-input">
+    </div>
+
+    <div>
+      <p style="font-size: 18px; font-weight: bold;">Chọn khung giờ:</p>
+      <div class="time-slots" id="timeSlots"></div>
+    </div>
+
+    <button class="next-btn" id="nextStep">Tiếp Theo - Bước 3: Điền Thông Tin</button>
+  </div>
+
+  <script>
+    const dateInput = document.getElementById('appointmentDate');
+    const timeSlotsContainer = document.getElementById('timeSlots');
+    const nextBtn = document.getElementById('nextStep');
+    const backBtn = document.getElementById('backBtn');
+    let selectedDate = null, selectedTime = null;
+
+    let bookingData = { deptId:null, deptName:'-' };
+
+    const availableSlots = [
+      '08:00 - 09:00',
+      '09:00 - 10:00',
+      '10:00 - 11:00',
+      '14:00 - 15:00',
+      '15:00 - 16:00',
+      '16:00 - 17:00'
+    ];
+
+    // Lấy khoa từ URL
+    function readDeptFromUrl() {
+      const qs = new URLSearchParams(window.location.search);
+      bookingData.deptId = qs.get('deptId');
+      bookingData.deptName = qs.get('deptName') || '-';
+      document.getElementById('selectedDeptDisplay').textContent = `Khoa đã chọn: ${bookingData.deptName}`;
+    }
+    readDeptFromUrl();
+
+    // Default ngày = hôm nay
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+    dateInput.value = today;
+    selectedDate = today;
+
+    // Render slots
+    function populateTimeSlots() {
+      timeSlotsContainer.innerHTML = '';
+      availableSlots.forEach(slot=>{
+        const div=document.createElement('div');
+        div.className='time-slot-card';
+        div.textContent=slot;
+        div.dataset.time=slot;
+        div.addEventListener('click',()=>{
+          document.querySelectorAll('.time-slot-card').forEach(c=>c.classList.remove('selected'));
+          div.classList.add('selected');
+          selectedTime=slot;
+          updateNextButton();
+        });
+        timeSlotsContainer.appendChild(div);
+      });
+    }
+    populateTimeSlots();
+
+    function updateNextButton() {
+      if (selectedDate && selectedTime) {
+        nextBtn.style.display='inline-block';
+        nextBtn.disabled=false;
+      } else {
+        nextBtn.style.display='none';
+      }
+    }
+
+    dateInput.addEventListener('change',()=>{
+      selectedDate=dateInput.value;
+      selectedTime=null;
+      populateTimeSlots();
+      updateNextButton();
+    });
+
+    nextBtn.addEventListener('click',()=>{
+      const params=new URLSearchParams();
+      if (bookingData.deptId) params.set('deptId',bookingData.deptId);
+      if (bookingData.deptName) params.set('deptName',bookingData.deptName);
+      params.set('date',selectedDate);
+      params.set('time',selectedTime);
+      window.location.href=`./thongtin?${params.toString()}`;
+    });
+
+    backBtn.addEventListener('click',()=>{
+      const params=new URLSearchParams();
+      if (bookingData.deptId) params.set('deptId',bookingData.deptId);
+      if (bookingData.deptName) params.set('deptName',bookingData.deptName);
+      window.location.href=`./khoa?${params.toString()}`;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👤 Trang Chủ Bệnh Nhân</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      padding: 12px 20px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .header h1 { margin: 0; font-size: 36px; font-weight: bold; }
+    .header p { margin: 10px 0 0; font-size: 18px; opacity: 0.9; }
+
+    .header-actions {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .user-info {
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255,255,255,0.15);
+      padding: 6px 12px;
+      border-radius: 20px;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-icon {
+      font-size: 20px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, transform 0.2s;
+      position: relative;
+    }
+
+    .action-icon:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+
+    .notification-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background-color: #dc3545;
+      color: white;
+      border-radius: 50%;
+      padding: 4px 7px;
+      font-size: 10px;
+      font-weight: bold;
+      border: 2px solid white;
+      line-height: 1;
+    }
+
+    .user-menu, .notification-menu { position: relative; }
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      margin-top: 10px;
+      min-width: 200px;
+      z-index: 999;
+    }
+
+    .dropdown-item {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      transition: background 0.3s;
+    }
+
+    .dropdown a.dropdown-item:hover { background: #f1f1f1; }
+    .dropdown .dropdown-header { font-weight: bold; padding: 10px 15px; border-bottom: 1px solid #eee; color: #007bff; }
+
+    .user-menu.active .dropdown,
+    .notification-menu.active .dropdown { display: block; }
+
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .welcome-section {
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeIn 1s ease-in;
+    }
+
+    .welcome-section h2 { font-size: 28px; color: #007bff; margin-bottom: 15px; }
+    .welcome-section p { font-size: 16px; color: #6c757d; max-width: 700px; margin: 0 auto 20px; line-height: 1.6; }
+
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      background: linear-gradient(135deg, #28a745, #34c759);
+      color: white;
+      border: none;
+      padding: 15px 35px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-btn:hover { background: linear-gradient(135deg, #218838, #2db84c); transform: scale(1.05); }
+
+    .footer {
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      text-align: center;
+      padding: 30px;
+      margin-top: 50px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* 🔹 Modal lịch khám */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      animation: fadeIn 0.5s ease;
+    }
+
+    .modal h3 { margin-top: 0; color: #007bff; }
+    .close-btn {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th { background: #007bff; color: white; }
+    tr:hover { background-color: #f2f2f2; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Bệnh Viện ABCD</h1>
+    <p>Chăm sóc sức khỏe của bạn với sự tận tâm và chuyên nghiệp</p>
+
+    <div class="header-actions">
+      <div class="user-info" id="userInfo">👤 Đang tải...</div>
+
+      <div class="notification-menu">
+        <div class="action-icon notification-icon">
+          🔔
+          <span class="notification-badge">3</span>
+        </div>
+        <div class="dropdown notification-dropdown">
+          <div class="dropdown-header">Thông báo mới</div>
+          <a href="#" class="dropdown-item">Lịch hẹn lúc 10h sáng ngày 5/10 đã được xác nhận.</a>
+          <a href="#" class="dropdown-item">Có kết quả xét nghiệm mới.</a>
+          <a href="#" class="dropdown-item">Hệ thống đã được cập nhật.</a>
+          <a href="#" class="dropdown-item" style="text-align: center; font-size: 12px; color: #007bff;">Xem tất cả</a>
+        </div>
+      </div>
+
+      <div class="user-menu">
+        <div class="action-icon user-icon">⚙️</div>
+        <div class="dropdown">
+          <a href="#" class="dropdown-item">Cập nhật thông tin</a>
+          <a href="#" class="dropdown-item" onclick="logout()">Đăng xuất</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="welcome-section">
+      <h2>Chào mừng bạn!</h2>
+      <p>Với hệ thống quản lý bệnh viện hiện đại, chúng tôi mang đến trải nghiệm chăm sóc sức khỏe tiện lợi, an toàn và thân thiện.</p>
+      <div class="action-buttons">
+        <button class="action-btn" onclick="startBooking()">📅 Đặt Lịch Khám Ngay</button>
+        <button class="action-btn" onclick="openAppointments()">📖 Xem Lịch Khám</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 Modal xem lịch khám -->
+  <div id="appointmentModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeAppointments()">&times;</span>
+      <h3>📋 Lịch Khám Của Tôi</h3>
+      <table id="appointmentTable">
+        <thead>
+          <tr>
+            <th>Mã</th>
+            <th>Ngày giờ</th>
+            <th>Bác sĩ</th>
+            <th>Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2025 Bệnh Viện XYZ. Mọi quyền được bảo lưu.</p>
+    <p>Liên hệ: <a href="tel:0915737863">0915737863</a> | Email: <a href="mailto:support@benhvienxyz.vn">support@benhvienxyz.vn</a></p>
+    <p>Địa chỉ: 123 Đường Yên Trác, Yên Nghĩa, Hà Nội</p>
+  </div>
+
+  <script>
+    // ✅ Kiểm tra đăng nhập
+    document.addEventListener("DOMContentLoaded", () => {
+      const userId = localStorage.getItem("userId");
+      const username = localStorage.getItem("username");
+      const role = localStorage.getItem("role");
+
+      if (!userId || !username || !role) {
+        alert("Vui lòng đăng nhập lại!");
+        window.location.href = "/login";
+        return;
+      }
+
+      document.getElementById("userInfo").innerHTML = `👤 <strong>${username}</strong> (${role})`;
+      document.querySelector(".welcome-section h2").textContent = `Chào mừng ${username}! 👋`;
+    });
+
+    // ✅ Đăng xuất
+    function logout() {
+      localStorage.clear();
+      alert("Đã đăng xuất!");
+      window.location.href = "/login";
+    }
+
+    // ✅ Dropdown
+    document.addEventListener("DOMContentLoaded", function() {
+      const userMenu = document.querySelector(".user-menu");
+      const userIcon = document.querySelector(".user-icon");
+      const notificationMenu = document.querySelector(".notification-menu");
+      const notificationIcon = document.querySelector(".notification-icon");
+
+      userIcon.onclick = (e) => {
+        e.stopPropagation();
+        notificationMenu.classList.remove("active");
+        userMenu.classList.toggle("active");
+      };
+
+      notificationIcon.onclick = (e) => {
+        e.stopPropagation();
+        userMenu.classList.remove("active");
+        notificationMenu.classList.toggle("active");
+        document.querySelector(".notification-badge").style.display = "none";
+      };
+
+      document.addEventListener("click", (e) => {
+        if (!userMenu.contains(e.target) && !notificationMenu.contains(e.target)) {
+          userMenu.classList.remove("active");
+          notificationMenu.classList.remove("active");
+        }
+      });
+    });
+
+    // ✅ Chuyển sang trang đặt lịch
+    function startBooking() {
+      window.location.href = "./khoa";
+    }
+
+    // ✅ Modal xem lịch khám
+    async function openAppointments() {
+      const modal = document.getElementById("appointmentModal");
+      modal.style.display = "flex";
+
+      const userId = localStorage.getItem("userId");
+      const patientRes = await fetch("http://localhost:8080/user-service/api/patients");
+      const patients = await patientRes.json();
+      const patient = patients.find(p => p.userId === userId);
+
+      if (!patient) {
+        alert("Không tìm thấy hồ sơ bệnh nhân!");
+        return;
+      }
+
+      const apptRes = await fetch(`http://localhost:8080/appointment-service/api/appointments/patient/${patient.id}`);
+      const appointments = await apptRes.json();
+
+      const tbody = document.querySelector("#appointmentTable tbody");
+      tbody.innerHTML = "";
+
+      appointments.forEach(a => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${a.id}</td>
+          <td>${a.appointmentTime.replace("T", " ")}</td>
+          <td>${a.doctorId || "Chưa chỉ định"}</td>
+          <td>${a.status}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function closeAppointments() {
+      document.getElementById("appointmentModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>

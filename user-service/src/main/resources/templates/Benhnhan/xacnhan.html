@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đặt Lịch Khám - Bước 4: Xác Nhận</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f7fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #333;
+    }
+    .container {
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 { font-size: 28px; color: #007bff; margin-bottom: 10px; }
+    p.step-info { font-size: 16px; color: #6c757d; margin-bottom: 30px; }
+    .confirmation-details {
+      background-color: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: left;
+    }
+    .detail-row {
+      display: flex; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid #e0e0e0;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { font-weight: bold; color: #495057; }
+    .detail-value { color: #007bff; }
+    .warning {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 30px;
+      font-size: 14px;
+      color: #856404;
+      text-align: left;
+    }
+    .navigation { display: flex; justify-content: space-between; margin-top: 30px; }
+    .back-btn, .confirm-btn {
+      background-color: #6c757d; color: white;
+      border: none; padding: 12px 30px;
+      font-size: 16px; border-radius: 8px;
+      cursor: pointer; transition: background-color 0.3s ease;
+    }
+    .back-btn:hover { background-color: #545b62; }
+    .confirm-btn { background-color: #28a745; }
+    .confirm-btn:hover { background-color: #218838; }
+    .success-message {
+      display: none; background-color: #d4edda;
+      border: 1px solid #c3e6cb; border-radius: 8px;
+      padding: 20px; margin: 30px 0;
+      color: #155724; font-size: 18px; font-weight: bold;
+    }
+    .success-details { margin-top: 20px; text-align: left; font-size: 16px; }
+    .success-details p { margin: 10px 0; }
+    @media (max-width: 600px) {
+      .container { padding: 20px; }
+      .navigation { flex-direction: column; gap: 10px; }
+      .detail-row { flex-direction: column; }
+      .detail-value { margin-top: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Đặt Lịch Khám Bệnh</h1>
+    <p class="step-info">Bước 4: Xác nhận thông tin đặt lịch khám. Vui lòng kiểm tra kỹ trước khi xác nhận.</p>
+
+    <div class="confirmation-details" id="confirmDetails">
+      <h2 style="color: #007bff; margin-top: 0;">Thông tin đặt lịch</h2>
+      <div class="detail-row"><span class="detail-label">Khoa khám:</span><span class="detail-value" id="valDept">-</span></div>
+      <div class="detail-row"><span class="detail-label">Ngày khám:</span><span class="detail-value" id="valDate">-</span></div>
+      <div class="detail-row"><span class="detail-label">Giờ khám:</span><span class="detail-value" id="valTime">-</span></div>
+      <div class="detail-row"><span class="detail-label">Bác sĩ:</span><span class="detail-value" id="valDoctor">Chưa chỉ định</span></div>
+      <div class="detail-row"><span class="detail-label">Họ và tên:</span><span class="detail-value" id="valPatient">-</span></div>
+      <div class="detail-row"><span class="detail-label">Giới tính:</span><span class="detail-value" id="valGender">-</span></div>
+      <div class="detail-row"><span class="detail-label">Số điện thoại:</span><span class="detail-value" id="valPhone">-</span></div>
+      <div class="detail-row"><span class="detail-label">Địa chỉ:</span><span class="detail-value" id="valAddress">-</span></div>
+    </div>
+
+    <div class="warning" id="warningBox">
+      <strong>Lưu ý:</strong> Vui lòng đến đúng giờ đã đặt. Nếu cần hủy hoặc thay đổi lịch, vui lòng liên hệ bệnh viện ít nhất 24 giờ trước giờ khám.
+    </div>
+
+    <div class="navigation" id="navButtons">
+      <button class="back-btn" onclick="goBack()">Quay Lại Bước 3</button>
+      <button class="confirm-btn" id="confirmBtn">Xác Nhận Đặt Lịch</button>
+    </div>
+
+    <div class="success-message" id="successMessage">
+      <h2 style="color: #28a745; margin-top: 0;">✅ Đặt lịch khám thành công!</h2>
+      <p>Cảm ơn bạn đã sử dụng dịch vụ đặt lịch khám của chúng tôi.</p>
+      <div class="success-details" id="successDetails"></div>
+      <button class="back-btn" onclick="goHome()" style="margin-top: 20px;">Quay về Trang Chủ</button>
+    </div>
+  </div>
+
+<script>
+  const qs = new URLSearchParams(window.location.search);
+
+  // --- Dữ liệu bệnh nhân và lịch khám ---
+  const bookingData = {
+    fullName: qs.get('fullName'),
+    gender: qs.get('gender'),
+    phone: qs.get('phone'),
+    address: qs.get('address'),
+    doctorId: qs.get('doctorId'),
+    deptName: qs.get('deptName'),
+    date: qs.get('date'),
+    rawTime: qs.get('time')
+  };
+
+  // --- Chuẩn hóa giờ ---
+  bookingData.time = bookingData.rawTime ? bookingData.rawTime.split('-')[0].trim() : null;
+
+  // --- Hiển thị xác nhận ---
+  function fillDetails() {
+    document.getElementById('valDept').textContent = bookingData.deptName || '-';
+    document.getElementById('valDate').textContent = bookingData.date || '-';
+    document.getElementById('valTime').textContent = bookingData.rawTime || '-';
+    document.getElementById('valDoctor').textContent = bookingData.doctorId || 'Chưa chỉ định';
+    document.getElementById('valPatient').textContent = bookingData.fullName || '-';
+    document.getElementById('valGender').textContent = bookingData.gender || '-';
+    document.getElementById('valPhone').textContent = bookingData.phone || '-';
+    document.getElementById('valAddress').textContent = bookingData.address || '-';
+  }
+  fillDetails();
+
+  // --- Khi nhấn Xác nhận ---
+  document.getElementById('confirmBtn').addEventListener('click', async () => {
+    try {
+      console.log("🧾 Dữ liệu bookingData:", bookingData);
+      console.log("🧍 userId trong localStorage:", localStorage.getItem('userId'));
+
+      // 1️⃣ Chuẩn bị dữ liệu bệnh nhân
+      const patientPayload = {
+        fullName: bookingData.fullName,
+        gender: bookingData.gender,
+        phone: bookingData.phone,
+        address: bookingData.address,
+        user: { id: localStorage.getItem('userId') }
+      };
+
+      console.log("📦 patientPayload gửi đi:", patientPayload);
+
+      // 2️⃣ Gửi POST đến user-service
+      const patientRes = await fetch("http://localhost:8080/user-service/api/patients", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json;charset=UTF-8"
+        },
+        body: JSON.stringify(patientPayload)
+      });
+
+      console.log("📨 Response status:", patientRes.status);
+      const textRes = await patientRes.text();
+      console.log("📨 Response body:", textRes);
+
+      if (!patientRes.ok) throw new Error("Không thể lưu bệnh nhân");
+
+      const savedPatient = JSON.parse(textRes);
+      console.log("✅ Bệnh nhân đã lưu:", savedPatient);
+
+      // 3️⃣ Tạo lịch hẹn sau khi có bệnh nhân
+      const appointmentPayload = {
+        patientId: savedPatient.id,
+        doctorId: bookingData.doctorId || null,
+        appointmentTime: `${bookingData.date}T${bookingData.time}:00`,
+        status: "REGISTERED"
+      };
+
+      console.log("📅 appointmentPayload gửi đi:", appointmentPayload);
+
+      const apptRes = await fetch("http://localhost:8080/appointment-service/api/appointments", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json;charset=UTF-8"
+        },
+        body: JSON.stringify(appointmentPayload)
+      });
+
+      const apptText = await apptRes.text();
+      console.log("📨 Response appointment:", apptText);
+
+      if (!apptRes.ok) throw new Error("Không thể lưu lịch hẹn");
+
+      const savedAppt = JSON.parse(apptText);
+      console.log("✅ Lịch hẹn đã lưu:", savedAppt);
+
+      // 4️⃣ Hiển thị thông báo thành công
+      document.getElementById('confirmDetails').style.display = 'none';
+      document.getElementById('navButtons').style.display = 'none';
+      document.getElementById('warningBox').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'block';
+
+      document.getElementById('successDetails').innerHTML = `
+        <p><strong>Mã lịch hẹn:</strong> <span style="color:#007bff;">${savedAppt.id}</span></p>
+        <p><strong>Thời gian:</strong> ${bookingData.rawTime}, ngày ${bookingData.date}</p>
+        <p><strong>Khoa:</strong> ${bookingData.deptName}</p>
+        <p><strong>Bệnh nhân:</strong> ${savedPatient.fullName}</p>
+        <p><strong>Số điện thoại:</strong> ${savedPatient.phone}</p>
+      `;
+    } catch (err) {
+      alert("❌ Có lỗi khi đặt lịch! " + err.message);
+      console.error("🚨 Lỗi chi tiết:", err);
+    }
+  });
+
+  function goBack() {
+    window.location.href = `./thongtin?${qs.toString()}`;
+  }
+
+  function goHome() {
+    window.location.href = `./home`;
+  }
+</script>

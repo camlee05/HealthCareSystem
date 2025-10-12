@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👨‍💼 Quản Lý Bệnh Nhân - Bệnh Viện XYZ</title>
+  <!-- Font Awesome cho icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #f0f4f8);
+      margin: 0;
+      padding: 0;
+      color: #333;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      padding: 40px 20px 80px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: "";
+      background: url('https://cdn-icons-png.flaticon.com/512/2966/2966487.png') no-repeat center/120px;
+      opacity: 0.15;
+      position: absolute;
+      inset: 0;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 38px;
+      font-weight: bold;
+      position: relative;
+      z-index: 1;
+    }
+    .header p {
+      margin: 10px 0 0;
+      font-size: 18px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* User menu */
+    .user-menu {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      z-index: 2;
+    }
+    .user-icon {
+      font-size: 20px;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      width: 42px;
+      height: 42px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .user-icon:hover {
+      background: rgba(255,255,255,0.25);
+      transform: scale(1.08);
+    }
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      margin-top: 10px;
+      min-width: 180px;
+      overflow: hidden;
+      z-index: 999;
+    }
+    .dropdown a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      transition: background 0.3s;
+    }
+    .dropdown a:hover {
+      background: #f1f1f1;
+    }
+    .user-menu.active .dropdown {
+      display: block;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+      padding: 40px;
+      animation: fadeIn 0.6s ease-in-out;
+      margin: -60px auto 40px;
+      position: relative;
+      z-index: 10;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    h1.section-title {
+      color: #1a3c64;
+      font-size: 30px;
+      margin-bottom: 15px;
+      text-align: center;
+      position: relative;
+    }
+    h1.section-title::after {
+      content: '';
+      width: 60px; height: 4px;
+      background: #2196f3;
+      position: absolute;
+      bottom: -10px; left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+    .welcome-message {
+      text-align: center;
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 35px;
+    }
+
+    /* Navigation button */
+    .nav-button {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .nav-button a {
+      padding: 10px 20px;
+      background: #2196f3;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .nav-button a:hover {
+      background: #1a7bd1;
+    }
+
+    /* Search bar */
+    .search-bar {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .search-bar input {
+      width: 60%;
+      padding: 12px 20px;
+      border: 1px solid #ddd;
+      border-radius: 25px 0 0 25px;
+      font-size: 16px;
+      outline: none;
+    }
+    .search-bar button {
+      padding: 12px 20px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 0 25px 25px 0;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .search-bar button:hover {
+      background: #1a7bd1;
+    }
+
+    /* Patient table */
+    .patient-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .patient-table th, .patient-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .patient-table th {
+      background: #f5faff;
+      color: #1a3c64;
+      font-weight: bold;
+    }
+    .patient-table tr:hover {
+      background: #e3f2fd;
+    }
+    .status {
+      padding: 5px 10px;
+      border-radius: 20px;
+      color: white;
+      font-size: 14px;
+    }
+    .status-registered {
+      background: #4caf50;
+    }
+    .status-ongoing {
+      background: #ff9800;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+    .actions button, .actions a {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-decoration: none;
+      color: white;
+      display: inline-block;
+    }
+    .btn-view {
+      background: #2196f3;
+    }
+    .btn-view:hover {
+      background: #1a7bd1;
+    }
+    .btn-delete {
+      background: #f44336;
+    }
+    .btn-delete:hover {
+      background: #d32f2f;
+    }
+
+    /* Pagination */
+    .pagination {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .pagination a {
+      padding: 8px 12px;
+      margin: 0 5px;
+      background: #f5faff;
+      color: #333;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .pagination a:hover {
+      background: #e3f2fd;
+    }
+    .pagination .active {
+      background: #2196f3;
+      color: white;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 25px;
+      margin-top: auto;
+      background: linear-gradient(135deg, #007bff, #00c4b4);
+      color: white;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #ffeb3b;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    .status-completed { background: #4caf50; } /* Xanh lá */
+    .status-canceled { background: #f44336; } /* Đỏ */
+    .status-registered { background: #2196f3; } /* Xanh dương */
+    .status-ongoing { background: #ff9800; } /* Cam */
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Bệnh Viện XYZ - Quản Lý Bệnh Nhân</h1>
+    <p>Quản lý thông tin bệnh nhân đã và đang đăng ký khám</p>
+    <div class="user-menu">
+      <div class="user-icon"><i class="fa-solid fa-user-tie"></i></div>
+      <div class="dropdown">
+        <a href="#">Cập nhật thông tin</a>
+        <a href="#">Đăng xuất</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="nav-button">
+      <a href="/admin/home"><i class="fa-solid fa-arrow-left"></i> Trở về Trang Chủ Admin</a>
+    </div>
+
+    <h1 class="section-title">Danh Sách Bệnh Nhân</h1>
+    <div class="welcome-message">
+      <p>👨‍💼 Xem chi tiết về từng bệnh nhân đã và đang đăng ký khám.</p>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Tìm kiếm bệnh nhân..." oninput="searchPatients()">
+      <button onclick="searchPatients()"><i class="fa-solid fa-search"></i> Tìm</button>
+    </div>
+
+    <table class="patient-table" id="patientTable">
+      <thead>
+        <tr>
+          <th>Mã bệnh nhân</th>
+          <th>Họ Tên</th>
+          <th>Giới Tính</th>
+          <th>Số Điện Thoại</th>
+          <th>Địa Chỉ</th>
+          <th>Trạng Thái</th>
+          <th>Hành Động</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="pagination">
+      <a href="#">&laquo;</a><a href="#" class="active">1</a><a href="#">&raquo;</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2025 Bệnh Viện XYZ. Mọi quyền được bảo lưu.</p>
+    <p>Liên hệ: <a href="tel:0915737863">0915737863</a> | Email: <a href="mailto:support@benhvienxyz.vn">support@benhvienxyz.vn</a></p>
+    <p>Địa chỉ: 123 Đường Yên Trác, Yên Nghĩa, Hà Nội</p>
+  </div>
+
+ <script>
+  const API_PATIENTS = "http://localhost:8080/user-service/api/patients";
+  const API_APPOINTMENTS = "http://localhost:8080/appointment-service/api/appointments";
+
+  // Toggle dropdown
+  document.querySelector('.user-icon').addEventListener('click', () => {
+    document.querySelector('.user-menu').classList.toggle('active');
+  });
+  document.addEventListener('click', e => {
+    const menu = document.querySelector('.user-menu');
+    if (!menu.contains(e.target)) menu.classList.remove('active');
+  });
+
+  // Fetch dữ liệu từ API
+  async function fetchData() {
+    try {
+      const [patientRes, appointmentRes] = await Promise.all([
+        fetch(API_PATIENTS),
+        fetch(API_APPOINTMENTS)
+      ]);
+
+      const patients = await patientRes.json();
+      const appointments = await appointmentRes.json();
+      renderPatients(patients, appointments);
+    } catch (err) {
+      console.error("Lỗi khi tải dữ liệu:", err);
+    }
+  }
+
+  // Render bảng (hiển thị CODE và trạng thái thật)
+  function renderPatients(patients, appointments) {
+    const tbody = document.querySelector("#patientTable tbody");
+    tbody.innerHTML = "";
+
+    patients.forEach(p => {
+      // Tìm lịch hẹn theo bệnh nhân
+      const appointment = appointments.find(a => a.patientId === p.id);
+
+      // Mặc định
+      let statusLabel = "Chưa có lịch hẹn";
+      let statusClass = "status-registered";
+
+      if (appointment) {
+        switch (appointment.status) {
+          case "REGISTERED":
+            statusLabel = "Đã đặt lịch";
+            statusClass = "status-registered";
+            break;
+          case "SCHEDULED":
+            statusLabel = "Đã xác nhận";
+            statusClass = "status-registered";
+            break;
+          case "ONGOING":
+            statusLabel = "Đang khám";
+            statusClass = "status-ongoing";
+            break;
+          case "COMPLETED":
+            statusLabel = "Đã khám xong";
+            statusClass = "status-completed";
+            break;
+          case "CANCELED":
+            statusLabel = "Đã hủy";
+            statusClass = "status-canceled";
+            break;
+          default:
+            statusLabel = "Không xác định";
+            statusClass = "status-unknown";
+        }
+      }
+
+      // Tạo hàng hiển thị
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${p.code || "—"}</td>
+        <td>${p.fullName || "—"}</td>
+        <td>${p.gender || "—"}</td>
+        <td>${p.phone || "—"}</td>
+        <td>${p.address || "—"}</td>
+        <td><span class="status ${statusClass}">${statusLabel}</span></td>
+        <td class="actions">
+          <a href="/admin/benhan?code=${p.code}" class="btn-view">Xem</a>
+          <button class="btn-delete" onclick="deletePatient('${p.id}')">Xóa</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Xóa bệnh nhân tại chỗ (hiện tại chỉ xóa hiển thị)
+  function deletePatient(id) {
+    if (confirm("Bạn có chắc chắn muốn xóa bệnh nhân này?")) {
+      document.querySelector(`button[onclick="deletePatient('${id}')"]`).closest("tr").remove();
+      alert("Đã xóa bệnh nhân!");
+    }
+  }
+
+  // Tìm kiếm bệnh nhân (theo code hoặc họ tên)
+  function searchPatients() {
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.querySelectorAll("#patientTable tbody tr");
+    rows.forEach(row => {
+      const code = row.children[0].textContent.toLowerCase();
+      const name = row.children[1].textContent.toLowerCase();
+      row.style.display = (name.includes(input) || code.includes(input)) ? "" : "none";
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", fetchData);
+</script>
+</body>
+</html>

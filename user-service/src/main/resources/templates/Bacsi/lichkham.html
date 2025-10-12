@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lịch Khám Bệnh</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+      padding: 30px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+
+    h1 {
+      color: #1a3c64;
+      font-size: 28px;
+      margin-bottom: 15px;
+      text-align: center;
+      position: relative;
+    }
+
+    h1::after {
+      content: '';
+      width: 50px; height: 4px;
+      background: #2196f3;
+      position: absolute;
+      bottom: -10px; left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .filter-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar label {
+      font-weight: bold;
+      color: #1a3c64;
+    }
+
+    .filter-bar input[type="date"] {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    .filter-bar button {
+      padding: 8px 15px;
+      background: linear-gradient(135deg, #00bcd4, #4fc3f7);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .filter-bar button:hover {
+      background: linear-gradient(135deg, #0288d1, #26c6da);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+    }
+
+    th {
+      background: #2196f3;
+      color: white;
+      font-weight: 600;
+    }
+
+    .patient-row {
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .patient-row:hover {
+      background: #e3f2fd;
+      transform: translateX(5px);
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #6b92b3, #00bcd4);
+      color: white;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: 600;
+    }
+
+    .back-btn:hover {
+      background: linear-gradient(135deg, #1976d2, #0097a7);
+    }
+
+    .loading, .error {
+      text-align: center;
+      padding: 20px;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Lịch Khám Bệnh</h1>
+
+    <!-- 🔹 Thanh chọn ngày -->
+    <div class="filter-bar">
+      <label for="dateFilter">Chọn ngày:</label>
+      <input type="date" id="dateFilter" />
+      <button onclick="filterByDate()">🔍 Lọc</button>
+      <button onclick="resetFilter()">🗓️ Hôm nay</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Giờ Hẹn</th>
+          <th>Tên Bệnh Nhân</th>
+          <th>Giới Tính</th>
+          <th>SĐT</th>
+          <th>Trạng Thái</th>
+        </tr>
+      </thead>
+      <tbody id="appointmentTable">
+        <tr><td colspan="5" class="loading">Đang tải dữ liệu...</td></tr>
+      </tbody>
+    </table>
+
+    <a href="/bacsi/home" class="back-btn">⬅️ Quay lại Trang Chủ</a>
+  </div>
+
+  <script>
+    const appointmentAPI = "http://localhost:8080/appointment-service/api/appointments";
+    const patientAPI = "http://localhost:8080/user-service/api/patients";
+    const doctorAPI = "http://localhost:8080/user-service/api/doctors";
+
+    let allAppointments = [];
+    let patients = [];
+
+    // Lấy ngày hiện tại
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("dateFilter").value = today;
+
+    // Load ban đầu
+    document.addEventListener("DOMContentLoaded", loadAppointments);
+
+    async function loadAppointments() {
+      const username = localStorage.getItem("username");
+      const role = localStorage.getItem("role");
+      const tbody = document.getElementById("appointmentTable");
+
+      if (!username || role !== "DOCTOR") {
+        alert("⚠️ Vui lòng đăng nhập bằng tài khoản bác sĩ!");
+        window.location.href = "/login";
+        return;
+      }
+
+      tbody.innerHTML = `<tr><td colspan="5" class="loading">Đang tải lịch khám...</td></tr>`;
+
+      try {
+        // 🔹 1️⃣ Tìm bác sĩ tương ứng theo username (VD: BS001)
+        const doctorRes = await fetch(doctorAPI);
+        const doctors = await doctorRes.json();
+        const doctor = doctors.find(d => d.user === username);
+
+        if (!doctor) {
+          tbody.innerHTML = `<tr><td colspan="5" class="error">Không tìm thấy bác sĩ tương ứng (${username})</td></tr>`;
+          return;
+        }
+
+        // 🔹 2️⃣ Lấy danh sách lịch hẹn của bác sĩ
+        const apptRes = await fetch(`${appointmentAPI}/doctor/${doctor.id}`);
+        allAppointments = await apptRes.json();
+
+        // 🔹 3️⃣ Lấy danh sách bệnh nhân
+        const patientRes = await fetch(patientAPI);
+        patients = await patientRes.json();
+
+        renderAppointments(today);
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="5" class="error">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
+      }
+    }
+
+    // 🔹 Hàm hiển thị danh sách (có thể lọc theo ngày)
+    function renderAppointments(selectedDate) {
+      const tbody = document.getElementById("appointmentTable");
+      tbody.innerHTML = "";
+
+      const filtered = allAppointments.filter(a => {
+        const apptDate = new Date(a.appointmentTime).toISOString().split("T")[0];
+        return apptDate === selectedDate;
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="error">Không có lịch khám trong ngày ${formatDateVN(selectedDate)}.</td></tr>`;
+        return;
+      }
+
+      const statusMap = {
+        SCHEDULED: "Đã đặt",
+        COMPLETED: "Đã khám",
+        CANCELED: "Đã hủy",
+        REGISTERED: "Chờ xếp lịch"
+      };
+
+      for (const appt of filtered) {
+        const patient = patients.find(p => p.id === appt.patientId);
+        const time = new Date(appt.appointmentTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+        const status = statusMap[appt.status] || appt.status;
+
+        tbody.innerHTML += `
+          <tr class="patient-row" onclick="goToPatient('${appt.patientId}')">
+            <td>${time}</td>
+            <td>${patient ? patient.fullName : "Không rõ"}</td>
+            <td>${patient ? (patient.gender === "female" ? "Nữ" : "Nam") : "-"}</td>
+            <td>${patient ? patient.phone || "-" : "-"}</td>
+            <td>${status}</td>
+          </tr>`;
+      }
+    }
+
+    function filterByDate() {
+      const date = document.getElementById("dateFilter").value;
+      renderAppointments(date);
+    }
+
+    function resetFilter() {
+      document.getElementById("dateFilter").value = today;
+      renderAppointments(today);
+    }
+
+    function formatDateVN(dateStr) {
+      const [y, m, d] = dateStr.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function goToPatient(patientId) {
+      window.location.href = `/bacsi/thongtin?id=${patientId}`;
+    }
+  </script>
+</body>
+</html>
