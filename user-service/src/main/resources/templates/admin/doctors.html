@@ -195,8 +195,8 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="username">Tài khoản đăng nhập:</label>
-              <input type="text" id="username" required placeholder="vd: bacsi.nguyenvana" />
+              <label for="username">Gmail:</label>
+              <input type="text" id="username" required placeholder="vd: name@gmail.com" />
             </div>
           </div>
 
@@ -328,7 +328,7 @@
             <h3>${d.fullName}</h3>
             <p><strong>🏥 Khoa:</strong> ${d.department || "—"}</p>
             <p><strong>📞 Điện thoại:</strong> ${d.phone || "—"}</p>
-            <p><strong>👤 Mã tài khoản:</strong> ${d.user || "—"}</p>
+            <p><strong>👤 Gmail:</strong> ${d.user || "—"}</p>
           </div>
           <div class="doctor-actions">
             <button class="btn" onclick='selectDoctor(${JSON.stringify(d)})'>🗓️ Sắp xếp lịch</button>

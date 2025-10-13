@@ -137,7 +137,12 @@
     document.getElementById('valTime').textContent = bookingData.rawTime || '-';
     document.getElementById('valDoctor').textContent = bookingData.doctorId || 'Chưa chỉ định';
     document.getElementById('valPatient').textContent = bookingData.fullName || '-';
-    document.getElementById('valGender').textContent = bookingData.gender || '-';
+    let genderDisplay = '-';
+    if (bookingData.gender) {
+      genderDisplay = bookingData.gender.toLowerCase() === 'male' ? 'Nam' :
+                      bookingData.gender.toLowerCase() === 'female' ? 'Nữ' : bookingData.gender;
+    }
+document.getElementById('valGender').textContent = genderDisplay;
     document.getElementById('valPhone').textContent = bookingData.phone || '-';
     document.getElementById('valAddress').textContent = bookingData.address || '-';
   }
