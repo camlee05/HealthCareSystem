@@ -192,6 +192,8 @@
       if (!diagRes.ok) throw new Error("Không lấy được dữ liệu chuẩn đoán!");
       const diagnoses = await diagRes.json();
 
+      console.log("🩺 Danh sách bệnh án:", diagnoses);
+
       let html = "<h3>Bệnh Án / Lịch Sử Chuẩn Đoán:</h3>";
       if (diagnoses.length > 0) {
         diagnoses.forEach(diag => {
@@ -199,8 +201,15 @@
             ? new Date(diag.date).toLocaleDateString("vi-VN")
             : "Không xác định";
 
+          // ✅ Dùng đúng thuộc tính ID thực tế
+          const diagnosisId = diag.id || diag.diagnosisId || diag._id;
+          if (!diagnosisId) {
+            console.warn("⚠️ Bệnh án không có ID hợp lệ:", diag);
+            return;
+          }
+
           html += `
-            <div class="medical-record" onclick="goToBenhan(${diag.id})">
+            <div class="medical-record" onclick="goToBenhan('${diagnosisId}')">
               <p><strong>Ngày khám:</strong> ${date}</p>
               <p><strong>Chuẩn đoán:</strong> ${diag.result || "Chưa có chuẩn đoán"}</p>
               <p><strong>Điều trị:</strong> ${diag.treatmentText || "Không có"}</p>
@@ -224,14 +233,22 @@
   // 🔙 Điều hướng
   // ==========================
   function goToNext() {
-    window.location.href = `/bacsi/addbenhan?id=${patientId}`;
+    if (!patientId) {
+      alert("Không có mã bệnh nhân để thêm bệnh án!");
+      return;
+    }
+    window.location.href = `/bacsi/addbenhan?id=${encodeURIComponent(patientId)}`;
   }
 
   function goToBack() {
     window.location.href = '/bacsi/lichkham';
   }
 
-  function goToBenhan(diagnosisId) {
+  function goToNext() {
+      window.location.href = `/bacsi/addbenhan?id=${patientId}`;
+    }
+
+    function goToBenhan(diagnosisId) {
     window.location.href = `http://localhost:8080/bacsi/xembenhan?diagnosisId=${diagnosisId}`;
   }
 
@@ -240,7 +257,6 @@
   // ==========================
   document.addEventListener("DOMContentLoaded", loadPatientInfo);
 </script>
-
 
 </body>
 </html>
