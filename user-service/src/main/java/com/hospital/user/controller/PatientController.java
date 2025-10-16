@@ -154,4 +154,23 @@ public class PatientController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    // --- Lấy bệnh nhân theo userId ---
+@GetMapping("/user/{userId}")
+public ResponseEntity<?> getByUserId(@PathVariable UUID userId) {
+    return patientRepository.findByUser_Id(userId)
+            .map(patient -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", patient.getId());
+                map.put("code", patient.getCode());
+                map.put("fullName", patient.getFullName());
+                map.put("gender", patient.getGender());
+                map.put("phone", patient.getPhone());
+                map.put("address", patient.getAddress());
+                map.put("userId", patient.getUser() != null ? patient.getUser().getId() : null);
+                return ResponseEntity.ok(map);
+            })
+            .orElse(ResponseEntity.notFound().build());
+}
+
 }

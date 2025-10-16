@@ -345,7 +345,7 @@
     <p>Địa chỉ: 123 Đường Yên Trác, Yên Nghĩa, Hà Nội</p>
   </div>
 
- <script>
+<script>
   const API_PATIENTS = "http://localhost:8080/user-service/api/patients";
   const API_APPOINTMENTS = "http://localhost:8080/appointment-service/api/appointments";
 
@@ -380,10 +380,8 @@
     tbody.innerHTML = "";
 
     patients.forEach(p => {
-      // Tìm lịch hẹn theo bệnh nhân
       const appointment = appointments.find(a => a.patientId === p.id);
 
-      // Mặc định
       let statusLabel = "Chưa có lịch hẹn";
       let statusClass = "status-registered";
 
@@ -409,13 +407,9 @@
             statusLabel = "Đã hủy";
             statusClass = "status-canceled";
             break;
-          default:
-            statusLabel = "Không xác định";
-            statusClass = "status-unknown";
         }
       }
 
-      // Tạo hàng hiển thị
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${p.code || "—"}</td>
@@ -426,22 +420,13 @@
         <td><span class="status ${statusClass}">${statusLabel}</span></td>
         <td class="actions">
           <a href="/admin/benhan?code=${p.code}" class="btn-view">Xem</a>
-          <button class="btn-delete" onclick="deletePatient('${p.id}')">Xóa</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  // Xóa bệnh nhân tại chỗ (hiện tại chỉ xóa hiển thị)
-  function deletePatient(id) {
-    if (confirm("Bạn có chắc chắn muốn xóa bệnh nhân này?")) {
-      document.querySelector(`button[onclick="deletePatient('${id}')"]`).closest("tr").remove();
-      alert("Đã xóa bệnh nhân!");
-    }
-  }
-
-  // Tìm kiếm bệnh nhân (theo code hoặc họ tên)
+  // 🔍 Tìm kiếm bệnh nhân
   function searchPatients() {
     const input = document.getElementById("searchInput").value.toLowerCase();
     const rows = document.querySelectorAll("#patientTable tbody tr");
@@ -454,5 +439,6 @@
 
   document.addEventListener("DOMContentLoaded", fetchData);
 </script>
+
 </body>
 </html>

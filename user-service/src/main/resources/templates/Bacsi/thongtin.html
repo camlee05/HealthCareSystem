@@ -70,10 +70,12 @@
       border-radius: 8px;
       margin-top: 10px;
       transition: all 0.3s;
+      cursor: pointer;
     }
 
     .medical-record:hover {
       transform: scale(1.02);
+      background: #dbeafe;
     }
 
     button {
@@ -119,76 +121,126 @@
     <button class="back-btn" onclick="goToBack()">Quay Lại</button>
   </div>
 
-  <script>
-    const API_PATIENT = "http://localhost:8080/user-service/api/patients";
-    const API_APPOINT = "http://localhost:8080/appointment-service/api/appointments/patient";
+<script>
+  // ==========================
+  // 🔗 API GATEWAY ENDPOINTS
+  // ==========================
+  const API_PATIENT = "http://localhost:8080/user-service/api/patients";
+  const API_DIAGNOSIS = "http://localhost:8080/diagnosis-service/api/diagnoses";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientId = urlParams.get("id");
+  // ==========================
+  // ⚙️ Lấy patientId (từ URL hoặc userId)
+  // ==========================
+  const urlParams = new URLSearchParams(window.location.search);
+  let patientId = urlParams.get("id");
 
-    async function loadPatientInfo() {
-      const infoDiv = document.getElementById("patientInfo");
-      const recordDiv = document.getElementById("medicalRecords");
-
-      if (!patientId) {
-        infoDiv.innerHTML = `<p class="error">Không tìm thấy ID bệnh nhân!</p>`;
+  // Nếu không có ?id=... thì tự tìm bằng userId trong localStorage
+  async function ensurePatientId() {
+    if (!patientId) {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        alert("Không có thông tin đăng nhập! Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
         return;
       }
 
       try {
-        // 🔹 Lấy thông tin bệnh nhân
-        const patientRes = await fetch(`${API_PATIENT}/${patientId}`);
-        if (!patientRes.ok) throw new Error("Không tìm thấy thông tin bệnh nhân!");
-        const patient = await patientRes.json();
-
-        infoDiv.innerHTML = `
-          <div class="info-section">
-            <h2>${patient.fullName}</h2>
-            <p><strong>Mã BN:</strong> ${patient.code || "-"}</p>
-            <p><strong>Giới tính:</strong> ${patient.gender === "female" ? "Nữ" : "Nam"}</p>
-            <p><strong>SĐT:</strong> ${patient.phone || "-"}</p>
-            <p><strong>Địa chỉ:</strong> ${patient.address || "-"}</p>
-          </div>
-        `;
-
-        // 🔹 Lấy danh sách lịch khám của bệnh nhân
-        const appRes = await fetch(`${API_APPOINT}/${patientId}`);
-        if (!appRes.ok) throw new Error("Không lấy được lịch khám!");
-        const appointments = await appRes.json();
-
-        let html = "<h3>Bệnh Án / Lịch Sử Khám:</h3>";
-        if (appointments.length > 0) {
-          appointments.forEach(appt => {
-            const date = new Date(appt.appointmentTime).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
-            html += `
-              <div class="medical-record">
-                <p><strong>Ngày giờ:</strong> ${date}</p>
-                <p><strong>Bác sĩ ID:</strong> ${appt.doctorId}</p>
-                <p><strong>Trạng thái:</strong> ${appt.status}</p>
-              </div>
-            `;
-          });
-        } else {
-          html += `<p>Chưa có lịch khám hoặc bệnh án nào.</p>`;
-        }
-
-        recordDiv.innerHTML = html;
-
+        const res = await fetch(`${API_PATIENT}/user/${userId}`);
+        if (!res.ok) throw new Error("Không tìm thấy bệnh nhân với userId này!");
+        const patient = await res.json();
+        patientId = patient.id;
+        console.log("✅ Lấy được patientId:", patientId);
       } catch (err) {
-        console.error(err);
-        infoDiv.innerHTML = `<p class="error">${err.message}</p>`;
+        console.error("❌ Lỗi khi lấy patientId:", err);
+        alert("Không có mã bệnh nhân trong URL và không thể lấy từ userId!");
       }
     }
+  }
 
-    function goToNext() {
-      window.location.href = `/bacsi/addbenhan?id=${patientId}`;
+  // ==========================
+  // ⚙️ Load dữ liệu bệnh nhân + chuẩn đoán
+  // ==========================
+  async function loadPatientInfo() {
+    await ensurePatientId(); // ✅ đảm bảo đã có patientId
+
+    const infoDiv = document.getElementById("patientInfo");
+    const recordDiv = document.getElementById("medicalRecords");
+
+    if (!patientId) {
+      infoDiv.innerHTML = `<p class="error">Không tìm thấy ID bệnh nhân!</p>`;
+      return;
     }
 
-    function goToBack() {
-      window.location.href = '/bacsi/lichkham';
-    }
+    try {
+      // 🔹 Lấy thông tin bệnh nhân
+      const patientRes = await fetch(`${API_PATIENT}/${patientId}`);
+      if (!patientRes.ok) throw new Error("Không tìm thấy thông tin bệnh nhân!");
+      const patient = await patientRes.json();
 
-    document.addEventListener("DOMContentLoaded", loadPatientInfo);
-  </script>
+      infoDiv.innerHTML = `
+        <div class="info-section">
+          <h2>${patient.fullName}</h2>
+          <p><strong>Mã BN:</strong> ${patient.code || "-"}</p>
+          <p><strong>Giới tính:</strong> ${patient.gender === "female" ? "Nữ" : "Nam"}</p>
+          <p><strong>SĐT:</strong> ${patient.phone || "-"}</p>
+          <p><strong>Địa chỉ:</strong> ${patient.address || "-"}</p>
+        </div>
+      `;
+
+      // 🔹 Lấy danh sách bệnh án / chuẩn đoán
+      const diagRes = await fetch(`${API_DIAGNOSIS}/patient/${patientId}`);
+      if (!diagRes.ok) throw new Error("Không lấy được dữ liệu chuẩn đoán!");
+      const diagnoses = await diagRes.json();
+
+      let html = "<h3>Bệnh Án / Lịch Sử Chuẩn Đoán:</h3>";
+      if (diagnoses.length > 0) {
+        diagnoses.forEach(diag => {
+          const date = diag.date
+            ? new Date(diag.date).toLocaleDateString("vi-VN")
+            : "Không xác định";
+
+          html += `
+            <div class="medical-record" onclick="goToBenhan(${diag.id})">
+              <p><strong>Ngày khám:</strong> ${date}</p>
+              <p><strong>Chuẩn đoán:</strong> ${diag.result || "Chưa có chuẩn đoán"}</p>
+              <p><strong>Điều trị:</strong> ${diag.treatmentText || "Không có"}</p>
+              <p><strong>Ghi chú:</strong> ${diag.notes || "Không có"}</p>
+            </div>
+          `;
+        });
+      } else {
+        html += `<p>Chưa có bệnh án hoặc chuẩn đoán nào.</p>`;
+      }
+
+      recordDiv.innerHTML = html;
+
+    } catch (err) {
+      console.error("❌ Lỗi khi tải dữ liệu:", err);
+      infoDiv.innerHTML = `<p class="error">${err.message}</p>`;
+    }
+  }
+
+  // ==========================
+  // 🔙 Điều hướng
+  // ==========================
+  function goToNext() {
+    window.location.href = `/bacsi/addbenhan?id=${patientId}`;
+  }
+
+  function goToBack() {
+    window.location.href = '/bacsi/lichkham';
+  }
+
+  function goToBenhan(diagnosisId) {
+    window.location.href = `http://localhost:8080/bacsi/xembenhan?diagnosisId=${diagnosisId}`;
+  }
+
+  // ==========================
+  // 🚀 Khi load xong trang
+  // ==========================
+  document.addEventListener("DOMContentLoaded", loadPatientInfo);
+</script>
+
+
 </body>
 </html>

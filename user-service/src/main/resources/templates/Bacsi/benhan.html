@@ -98,7 +98,7 @@
     </div>
 
     <div class="actions">
-      <button class="btn back-btn" onclick="window.location.href='/admin/home'">⬅️ Quay lại</button>
+      <button class="btn back-btn" onclick="window.location.href='/bacsi/lichkham'">⬅️ Quay lại</button>
       <button class="btn" onclick="window.print()">🖨️ In bệnh án</button>
     </div>
   </div>
@@ -107,60 +107,80 @@
   const API_PATIENTS = "http://localhost:8080/user-service/api/patients";
   const API_APPOINTMENTS = "http://localhost:8080/appointment-service/api/appointments";
   const API_DIAGNOSES = "http://localhost:8080/diagnosis-service/api/diagnoses";
+  const API_USERS = "http://localhost:8080/user-service/api/users";
 
   document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    if (!code) return alert("Không có mã bệnh nhân trong URL!");
+    const diagnosisId = params.get("diagnosisId");
+
+    if (!diagnosisId) {
+      alert("Không có mã bệnh án trong URL!");
+      return;
+    }
 
     try {
-      // 1️⃣ Lấy bệnh nhân
-      const patientRes = await fetch(API_PATIENTS);
-      const patients = await patientRes.json();
-      const patient = patients.find(p => p.code === code);
-      if (!patient) return alert("Không tìm thấy bệnh nhân!");
+      // 1️⃣ Lấy thông tin bệnh án theo diagnosisId
+      const diagRes = await fetch(`${API_DIAGNOSES}/${diagnosisId}`);
+      if (!diagRes.ok) throw new Error("Không tìm thấy bệnh án!");
+      const diag = await diagRes.json();
 
-      document.getElementById("patientCode").textContent = patient.code;
-      document.getElementById("patientName").textContent = patient.fullName;
-      document.getElementById("patientGender").textContent = patient.gender;
-      document.getElementById("patientPhone").textContent = patient.phone;
-      document.getElementById("patientAddress").textContent = patient.address;
+      // 2️⃣ Lấy thông tin bệnh nhân
+      const patientRes = await fetch(`${API_PATIENTS}/${diag.patientId}`);
+      if (!patientRes.ok) throw new Error("Không tìm thấy bệnh nhân!");
+      const patient = await patientRes.json();
 
-      // 2️⃣ Lấy lịch hẹn theo patientId
-      const apptRes = await fetch(API_APPOINTMENTS + `/patient/${patient.id}`);
-      const appointments = await apptRes.json();
-      const appt = appointments[0];
-      if (appt) {
+      document.getElementById("patientCode").textContent = patient.code || "-";
+      document.getElementById("patientName").textContent = patient.fullName || "-";
+      document.getElementById("patientGender").textContent = patient.gender === "female" ? "Nữ" : "Nam";
+      document.getElementById("patientPhone").textContent = patient.phone || "-";
+      document.getElementById("patientAddress").textContent = patient.address || "-";
+
+      // 3️⃣ Lấy thông tin lịch hẹn
+      const apptRes = await fetch(`${API_APPOINTMENTS}/${diag.appointmentId}`);
+      if (apptRes.ok) {
+        const appt = await apptRes.json();
         document.getElementById("appointmentTime").textContent =
           new Date(appt.appointmentTime).toLocaleString("vi-VN");
-        document.getElementById("doctorId").textContent = appt.doctorId || "Chưa phân công";
         const statusEl = document.getElementById("appointmentStatus");
         statusEl.textContent = appt.status;
-        statusEl.className = "badge " + {
-          REGISTERED: "badge-info",
-          SCHEDULED: "badge-warning",
-          ONGOING: "badge-warning",
-          COMPLETED: "badge-success",
-          CANCELED: "badge-danger"
-        }[appt.status];
+        statusEl.className =
+          "badge " +
+          {
+            REGISTERED: "badge-info",
+            SCHEDULED: "badge-warning",
+            ONGOING: "badge-warning",
+            COMPLETED: "badge-success",
+            CANCELED: "badge-danger",
+          }[appt.status];
       }
 
-      // 3️⃣ Lấy bệnh án (diagnosis)
-      if (appt) {
-        const diagRes = await fetch(API_DIAGNOSES + `/appointment/${appt.id}`);
-        if (diagRes.ok) {
-          const diag = await diagRes.json();
-          document.getElementById("diagnosisResult").textContent = diag.result || "—";
-          document.getElementById("treatmentText").textContent = diag.treatmentText || "—";
-          document.getElementById("diagnosisNotes").textContent = diag.notes || "—";
+      // 4️⃣ Lấy tên bác sĩ (từ user-service)
+      if (diag.doctorId) {
+        try {
+          const doctorRes = await fetch(`${API_USERS}/${diag.doctorId}`);
+          if (doctorRes.ok) {
+            const doctor = await doctorRes.json();
+            document.getElementById("doctorId").textContent =
+              doctor.fullName || doctor.username || "Không xác định";
+          } else {
+            document.getElementById("doctorId").textContent = "Không xác định";
+          }
+        } catch {
+          document.getElementById("doctorId").textContent = "Không xác định";
         }
       }
 
+      // 5️⃣ Hiển thị kết quả chuẩn đoán
+      document.getElementById("diagnosisResult").textContent = diag.result || "—";
+      document.getElementById("treatmentText").textContent = diag.treatmentText || "—";
+      document.getElementById("diagnosisNotes").textContent = diag.notes || "—";
+
     } catch (err) {
       console.error("❌ Lỗi tải dữ liệu:", err);
-      alert("Không thể tải thông tin bệnh án!");
+      alert(err.message || "Không thể tải thông tin bệnh án!");
     }
   });
 </script>
+
 </body>
 </html>

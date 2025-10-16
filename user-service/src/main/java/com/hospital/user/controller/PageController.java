@@ -81,6 +81,11 @@ public class PageController {
         return "Bacsi/ba_moi";
     }
 
+    @GetMapping("/bacsi/xembenhan")
+    public String xembenhan() {
+        return "Bacsi/benhan";
+    }
+
     @GetMapping("/bacsi/lichkham")
     public String lichkham() {
         return "Bacsi/lichkham";

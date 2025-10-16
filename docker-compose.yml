@@ -13,7 +13,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - hospital-net
     healthcheck:
@@ -66,7 +65,6 @@ services:
         condition: service_started
     restart: always
     volumes:
-      # ⚡ Mount toàn bộ thư mục templates để sửa HTML không cần rebuild
       - ./user-service/src/main/resources/templates:/app/templates
     environment:
       SPRING_THYMELEAF_PREFIX: file:/app/templates/
@@ -110,13 +108,24 @@ services:
 
   # --- RabbitMQ ---
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.13-management
     container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5672:5672"      # cổng AMQP (Spring Boot dùng)
+      - "15672:15672"    # giao diện quản lý web
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - hospital-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 # --- Networks and Volumes ---
 networks:
@@ -124,3 +133,4 @@ networks:
 
 volumes:
   postgres_data:
+  rabbitmq_data:

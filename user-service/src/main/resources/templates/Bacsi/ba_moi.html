@@ -3,148 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tạo Bệnh Án Mới</title>
+  <title>Chi Tiết Bệnh Án</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
     body {
       background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
-      min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
+
     .container {
-      max-width: 900px; width: 100%; background: white; border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(31,38,135,0.2); padding: 30px; animation: fadeIn 0.5s ease-in-out;
+      max-width: 900px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+      padding: 30px;
+      animation: fadeIn 0.5s ease-in-out;
     }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
-    h1 { color:#1a3c64; font-size:28px; margin-bottom:20px; text-align:center; position:relative; }
-    h1::after { content:''; width:50px; height:4px; background:#2196f3; position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); border-radius:2px; }
-    form { display:flex; flex-direction:column; gap:15px; }
-    label { color:#1a3c64; font-weight:500; }
-    input, textarea {
-      padding:12px; border:1px solid #e0e0e0; border-radius:8px; font-size:14px; transition:all 0.3s;
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    input:focus, textarea:focus {
-      border-color:#2196f3; outline:none; box-shadow:0 0 8px rgba(33,150,243,0.3);
+
+    h1 {
+      color: #1a3c64;
+      font-size: 28px;
+      margin-bottom: 20px;
+      text-align: center;
+      position: relative;
     }
-    textarea { resize:vertical; min-height:100px; }
+
+    h1::after {
+      content: '';
+      width: 50px;
+      height: 4px;
+      background: #2196f3;
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .field {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #1a3c64;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    textarea, input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #f9f9f9;
+      resize: none;
+      font-size: 15px;
+    }
+
     button {
-      background:#2196f3; color:white; padding:12px 24px; border:none; border-radius:25px;
-      cursor:pointer; font-size:16px; font-weight:500; transition:all 0.3s; margin:5px;
+      background: #2196f3;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s;
+      margin-top: 10px;
     }
-    button:hover { background:#1976d2; transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
-    .back-btn { background:#6c757d; } .back-btn:hover { background:#5a6268; }
+
+    button:hover {
+      background: #1976d2;
+      transform: translateY(-2px);
+    }
+
+    .loading, .error {
+      text-align: center;
+      padding: 20px;
+      color: #555;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Tạo Bệnh Án Mới</h1>
-    <form id="diagnosisForm">
-      <label for="diagnosis">🩺 Chẩn Đoán:</label>
-      <textarea id="diagnosis" rows="5" required placeholder="Nhập chẩn đoán..."></textarea>
-
-      <label for="treatment">💊 Điều Trị:</label>
-      <textarea id="treatment" rows="3" required placeholder="Nhập phương pháp điều trị..."></textarea>
-
-      <label for="notes">📝 Ghi Chú:</label>
-      <textarea id="notes" rows="3" placeholder="Nhập ghi chú (nếu có)..."></textarea>
-
-      <button type="submit">💾 Lưu Bệnh Án</button>
-      <button type="button" class="back-btn" onclick="goToBack()">⬅️ Quay Lại</button>
-    </form>
+    <h1>Chi Tiết Bệnh Án</h1>
+    <div id="diagnosisDetail" class="loading">Đang tải dữ liệu...</div>
+    <button onclick="goBack()">⬅️ Quay Lại</button>
   </div>
 
-<script>
-  const API_APPOINTMENTS = "http://localhost:8080/appointment-service/api/appointments";
-  const API_DIAGNOSES = "http://localhost:8080/diagnosis-service/api/diagnoses";
-  const urlParams = new URLSearchParams(window.location.search);
-  const patientId = urlParams.get("id");
-  const doctorId = localStorage.getItem("doctorId");
+  <script>
+    const API_DIAGNOSES = "http://localhost:8080/diagnosis-service/api/diagnoses";
+    const urlParams = new URLSearchParams(window.location.search);
+    const diagnosisId = urlParams.get("diagnosisId");
 
-  // 🔙 Quay lại trang trước
-  function goToBack() {
-    window.location.href = `/bacsi/thongtin?id=${patientId}`;
-  }
+    // ===============================
+    // 🩺 Hàm tải chi tiết bệnh án
+    // ===============================
+    async function loadDiagnosis() {
+      const detailDiv = document.getElementById("diagnosisDetail");
 
-  // 🧠 Xử lý khi bác sĩ nhấn "Lưu bệnh án"
-  document.getElementById("diagnosisForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+      if (!diagnosisId) {
+        detailDiv.innerHTML = "<p style='color:red;'>❌ Không tìm thấy mã bệnh án!</p>";
+        return;
+      }
 
-    const diagnosis = document.getElementById("diagnosis").value.trim();
-    const treatment = document.getElementById("treatment").value.trim();
-    const notes = document.getElementById("notes").value.trim();
+      try {
+        const res = await fetch(`${API_DIAGNOSES}/${diagnosisId}`);
+        if (!res.ok) throw new Error("Không lấy được thông tin bệnh án!");
 
-    if (!diagnosis || !treatment) {
-      alert("⚠️ Vui lòng nhập đầy đủ thông tin chẩn đoán và điều trị!");
-      return;
+        const diag = await res.json();
+
+        const date = diag.date
+          ? new Date(diag.date).toLocaleDateString("vi-VN")
+          : "Không xác định";
+
+        detailDiv.innerHTML = `
+          <div class="field">
+            <label>📅 Ngày khám:</label>
+            <input type="text" value="${date}" readonly />
+          </div>
+
+          <div class="field">
+            <label>🩺 Chẩn đoán:</label>
+            <textarea readonly>${diag.result || "Không có"}</textarea>
+          </div>
+
+          <div class="field">
+            <label>💊 Điều trị:</label>
+            <textarea readonly>${diag.treatmentText || "Không có"}</textarea>
+          </div>
+
+          <div class="field">
+            <label>📝 Ghi chú:</label>
+            <textarea readonly>${diag.notes || "Không có"}</textarea>
+          </div>
+        `;
+
+      } catch (err) {
+        console.error("❌ Lỗi khi tải bệnh án:", err);
+        detailDiv.innerHTML = `<p class="error">${err.message}</p>`;
+      }
     }
 
-    try {
-      // 1️⃣ Lấy danh sách lịch hẹn của bệnh nhân
-      const resAppt = await fetch(`${API_APPOINTMENTS}/patient/${patientId}`);
-      if (!resAppt.ok) throw new Error("Không thể lấy dữ liệu lịch hẹn!");
-      const appointments = await resAppt.json();
-
-      // 2️⃣ Chọn lịch hẹn có trạng thái SCHEDULED hoặc ONGOING
-      const appointment = appointments.find(a =>
-        a.status === "SCHEDULED" || a.status === "ONGOING"
-      );
-
-      if (!appointment) {
-        alert("❌ Không tìm thấy lịch hẹn đang hoạt động cho bệnh nhân này!");
-        return;
-      }
-
-      // 3️⃣ Tạo dữ liệu bệnh án
-      const diagnosisData = {
-        appointmentId: appointment.id,
-        doctorId: doctorId,
-        patientId: patientId,
-        result: diagnosis,
-        treatmentText: treatment,
-        notes: notes
-      };
-
-      console.log("📤 Gửi bệnh án:", diagnosisData);
-
-      // 4️⃣ Gửi POST để lưu bệnh án
-      const res = await fetch(API_DIAGNOSES, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(diagnosisData)
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error("❌ Lỗi khi lưu bệnh án:", errText);
-        alert("❌ Không thể lưu bệnh án:\n" + errText);
-        return;
-      }
-
-      console.log("✅ Lưu bệnh án thành công, cập nhật trạng thái lịch hẹn...");
-
-      // 5️⃣ Sau khi lưu bệnh án thành công → Cập nhật trạng thái appointment = COMPLETED
-      const updateRes = await fetch(`${API_APPOINTMENTS}/${appointment.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "COMPLETED" })
-      });
-
-      if (updateRes.ok) {
-        alert("✅ Lưu bệnh án và cập nhật lịch khám hoàn tất!");
-      } else {
-        const updateErr = await updateRes.text();
-        console.warn("⚠️ Không cập nhật được trạng thái lịch hẹn:", updateErr);
-        alert("⚠️ Bệnh án đã lưu, nhưng không cập nhật được trạng thái lịch hẹn!");
-      }
-
-      // 6️⃣ Quay lại trang lịch khám
+    // ===============================
+    // 🔙 Quay lại trang trước
+    // ===============================
+    function goBack() {
       window.location.href = "/bacsi/lichkham";
-
-    } catch (error) {
-      console.error("⚠️ Lỗi:", error);
-      alert("⚠️ Không thể kết nối tới server!");
     }
-  });
-</script>
 
+    // ===============================
+    // 🚀 Khi trang load xong
+    // ===============================
+    document.addEventListener("DOMContentLoaded", loadDiagnosis);
+  </script>
 </body>
 </html>
