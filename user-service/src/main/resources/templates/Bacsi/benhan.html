@@ -95,6 +95,7 @@
       <p><strong>Chẩn đoán:</strong> <span id="diagnosisResult">—</span></p>
       <p><strong>Điều trị:</strong> <span id="treatmentText">—</span></p>
       <p><strong>Ghi chú:</strong> <span id="diagnosisNotes">—</span></p>
+      <div id="diagnosisImageContainer" style="margin-top:15px; text-align:center;"></div>
     </div>
 
     <div class="actions">
@@ -174,6 +175,17 @@
       document.getElementById("diagnosisResult").textContent = diag.result || "—";
       document.getElementById("treatmentText").textContent = diag.treatmentText || "—";
       document.getElementById("diagnosisNotes").textContent = diag.notes || "—";
+// 6️⃣ Hiển thị ảnh phim chuẩn đoán (nếu có)
+if (diag.imagePath) {
+  const imgContainer = document.getElementById("diagnosisImageContainer");
+  imgContainer.innerHTML = `
+    <p style="color:#2563eb; margin-bottom:10px;"> Ảnh phim chuẩn đoán (Nếu có)</p>
+    <img src="http://localhost:8080/diagnosis-service/api/diagnoses/${diagnosisId}/image"
+         alt="Ảnh phim chuẩn đoán"
+         style="max-width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.3);"/>
+  `;
+}
+
 
     } catch (err) {
       console.error("❌ Lỗi tải dữ liệu:", err);

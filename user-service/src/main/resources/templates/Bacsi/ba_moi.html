@@ -47,6 +47,10 @@
       <label for="notes">📝 Ghi Chú:</label>
       <textarea id="notes" rows="3" placeholder="Nhập ghi chú (nếu có)..."></textarea>
 
+      <label for="imageFile">🖼️ Ảnh phim chuẩn đoán (tuỳ chọn):</label>
+      <input type="file" id="imageFile" accept="image/*">
+
+
       <button type="submit">💾 Lưu Bệnh Án</button>
       <button type="button" class="back-btn" onclick="goToBack()">⬅️ Quay Lại</button>
     </form>
@@ -111,6 +115,31 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(diagnosisData)
       });
+
+      // 📤 Nếu có chọn ảnh, upload ảnh sau khi tạo bệnh án
+if (res.ok) {
+  const savedDiagnosis = await res.json();
+  const fileInput = document.getElementById("imageFile");
+
+  if (fileInput.files.length > 0) {
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    console.log("🖼️ Uploading image for diagnosis:", savedDiagnosis.id);
+
+    const uploadRes = await fetch(
+      `${API_DIAGNOSES}/${savedDiagnosis.id}/upload-image`,
+      { method: "POST", body: formData }
+    );
+
+    if (uploadRes.ok) {
+      console.log("✅ Ảnh đã upload thành công!");
+    } else {
+      console.warn("⚠️ Không thể upload ảnh phim:", await uploadRes.text());
+    }
+  }
+}
+
 
       if (!res.ok) {
         const errText = await res.text();

@@ -89,7 +89,7 @@ services:
     build: ./diagnosis-service
     container_name: diagnosis-service
     ports:
-      - "8086:8086"                     # ✅ Mở cổng truy cập service
+      - "8083:8083"                     # ✅ Mở cổng truy cập service
     networks:
       - hospital-net
     depends_on:
@@ -108,7 +108,7 @@ services:
       - SPRING_APPLICATION_NAME=diagnosis-service
       - UPLOAD_PATH=/app/uploads        # ✅ Trỏ biến môi trường cho controller đọc file
 
-                 # 🧱 Volume chung để không mất file sau restart
+                    
 
 
   # --- NOTIFICATION SERVICE ---
@@ -148,7 +148,6 @@ networks:
   hospital-net:
 
 volumes:
-  diagnosis_data:   
+  diagnosis_data:     # 🧱 Volume chung để không mất file sau restart
   postgres_data:
-  rabbitmq_data:   
-  
+  rabbitmq_data:
