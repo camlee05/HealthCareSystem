@@ -1,6 +1,7 @@
 package com.hospital.user.controller;
 
 import com.hospital.user.model.User;
+import com.hospital.user.model.Role;
 import com.hospital.user.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,4 +57,9 @@ public class UserController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+    @GetMapping("/role/{role}")
+public List<User> getByRole(@PathVariable String role) {
+    return userRepository.findByRole(Role.valueOf(role.toUpperCase()));
+}
+
 }

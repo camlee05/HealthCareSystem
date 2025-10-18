@@ -26,7 +26,7 @@
             text-align: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
         }
         .header::before {
             content: "";
@@ -108,8 +108,9 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.25);
             margin-top: 10px;
             min-width: 300px;
-            max-height: 300px;
+            max-height: 500px;
             overflow-y: auto;
+            scrollbar-width: thin;
             z-index: 999;
         }
         .dropdown-header {
@@ -227,12 +228,12 @@
                     <i class="fa-solid fa-bell"></i>
                     <span class="notification-badge" id="notificationBadge">3</span>
                 </div>
-                <div class="dropdown">
-                    <div class="dropdown-header">Thông báo mới</div>
-                    <a href="#" class="dropdown-item"><i class="fa-solid fa-user-plus"></i> Có yêu cầu đăng ký mới cần duyệt.</a>
-                    <a href="#" class="dropdown-item"><i class="fa-solid fa-chart-bar"></i> Báo cáo quý IV đã sẵn sàng.</a>
+                <div class="dropdown" id="notificationDropdown">
+                    <div class="dropdown-header">🔔 Thông báo mới</div>
+                    <div id="notificationList"></div>
                     <a href="#" class="dropdown-item" style="text-align: center; color: #007bff;">Xem tất cả</a>
                 </div>
+
             </div>
             
             <div class="menu-item" id="userMenu">
@@ -337,6 +338,103 @@
                 menuItems.forEach(m => m.classList.remove("active"));
             });
         });
+// 📨 Lấy thông báo từ backend & hiển thị
+async function loadNotifications() {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    try {
+        const response = await fetch(`http://localhost:8080/notification-service/api/notifications/user/${userId}`);
+        if (!response.ok) throw new Error("Không thể tải thông báo");
+
+        const notifications = await response.json();
+        const listContainer = document.getElementById("notificationList");
+        const badge = document.getElementById("notificationBadge");
+        listContainer.innerHTML = "";
+
+        if (notifications.length === 0) {
+            listContainer.innerHTML = `<p style="padding:10px; text-align:center; color:#888;">Không có thông báo nào</p>`;
+            badge.style.display = "none";
+            return;
+        }
+
+        // 🔢 Cập nhật badge (đếm chưa đọc)
+        const unreadCount = notifications.filter(n => !n.read).length;
+        badge.textContent = unreadCount;
+        badge.style.display = unreadCount > 0 ? "block" : "none";
+
+        // 🧾 Hiển thị danh sách thông báo
+        notifications
+            .filter(n => !n.read)  // chỉ hiển thị thông báo chưa đọc
+            .slice(-10)
+            .reverse()
+            .forEach(noti => {
+                const item = document.createElement("div");
+                item.classList.add("dropdown-item");
+                item.style.display = "flex";
+                item.style.justifyContent = "space-between";
+                item.style.alignItems = "center";
+                item.innerHTML = `
+                    <div>
+                        <i class="fa-solid fa-circle-info"></i>
+                        ${noti.message}<br>
+                        <small style="color:gray;">${new Date(noti.createdAt).toLocaleString()}</small>
+                    </div>
+                    <button class="mark-read-btn" title="Đánh dấu đã đọc">✓</button>
+                `;
+
+                const btn = item.querySelector(".mark-read-btn");
+                btn.style.background = "#28a745";
+                btn.style.color = "white";
+                btn.style.border = "none";
+                btn.style.borderRadius = "50%";
+                btn.style.width = "22px";
+                btn.style.height = "22px";
+                btn.style.cursor = "pointer";
+                btn.style.fontWeight = "bold";
+                btn.style.transition = "0.2s";
+                btn.addEventListener("mouseenter", () => btn.style.opacity = "0.8");
+                btn.addEventListener("mouseleave", () => btn.style.opacity = "1");
+
+                // ✅ Khi bấm nút tích
+                btn.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    try {
+                        await fetch(`http://localhost:8080/notification-service/api/notifications/${noti.id}/read`, {
+                            method: "PUT",
+                        });
+                        // Ẩn thông báo khỏi dropdown
+                        item.remove();
+                        // Giảm badge
+                        const currentCount = parseInt(badge.textContent) || 1;
+                        const newCount = Math.max(currentCount - 1, 0);
+                        badge.textContent = newCount;
+                        if (newCount === 0) badge.style.display = "none";
+                    } catch (err) {
+                        alert("❌ Lỗi khi cập nhật trạng thái đã đọc!");
+                        console.error(err);
+                    }
+                });
+
+                listContainer.appendChild(item);
+            });
+
+        // Nếu tất cả đều đọc hết
+        if (listContainer.children.length === 0) {
+            listContainer.innerHTML = `<p style="padding:10px; text-align:center; color:#888;">Không có thông báo chưa đọc</p>`;
+        }
+
+    } catch (err) {
+        console.error("Lỗi khi tải thông báo:", err);
+        document.getElementById("notificationList").innerHTML =
+            `<p style="padding:10px; color:red;">Lỗi tải thông báo</p>`;
+    }
+}
+
+// 🔁 Gọi khi load trang & tự động refresh mỗi 10 giây
+document.addEventListener("DOMContentLoaded", loadNotifications);
+setInterval(loadNotifications, 10000);
+
     </script>
 </body>
 </html>

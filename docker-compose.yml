@@ -88,12 +88,28 @@ services:
   diagnosis-service:
     build: ./diagnosis-service
     container_name: diagnosis-service
+    ports:
+      - "8086:8086"                     # ✅ Mở cổng truy cập service
     networks:
       - hospital-net
     depends_on:
       - postgres
       - discovery-server
       - appointment-service
+    volumes:
+      - diagnosis_data:/app/uploads     # ✅ Volume lưu file bệnh án
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/hospital
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka
+      - SERVER_PORT=8086
+      - SPRING_APPLICATION_NAME=diagnosis-service
+      - UPLOAD_PATH=/app/uploads        # ✅ Trỏ biến môi trường cho controller đọc file
+
+                 # 🧱 Volume chung để không mất file sau restart
+
 
   # --- NOTIFICATION SERVICE ---
   notification-service:
@@ -132,5 +148,7 @@ networks:
   hospital-net:
 
 volumes:
+  diagnosis_data:   
   postgres_data:
-  rabbitmq_data:
+  rabbitmq_data:   
+  

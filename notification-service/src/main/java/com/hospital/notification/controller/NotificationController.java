@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -44,7 +45,7 @@ public class NotificationController {
 
     // Lấy tất cả thông báo theo userId
     @GetMapping("/user/{userId}")
-    public List<Notification> getByUser(@PathVariable Long userId) {
+    public List<Notification> getByUser(@PathVariable UUID userId) {
         return repo.findByUserId(userId);
     }
 

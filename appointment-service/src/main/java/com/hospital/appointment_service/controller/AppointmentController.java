@@ -1,8 +1,12 @@
 package com.hospital.appointment_service.controller;
 
+import com.hospital.appointment_service.event.AppointmentEvent;
 import com.hospital.appointment_service.model.Appointment;
 import com.hospital.appointment_service.model.Status;
 import com.hospital.appointment_service.repository.AppointmentRepository;
+import com.hospital.appointment_service.service.AppointmentProducer;
+import org.springframework.web.client.RestTemplate;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +18,11 @@ import java.util.*;
 public class AppointmentController {
 
     private final AppointmentRepository repo;
+    private final AppointmentProducer appointmentProducer;
 
-    public AppointmentController(AppointmentRepository repo) {
+    public AppointmentController(AppointmentRepository repo, AppointmentProducer appointmentProducer) {
         this.repo = repo;
+        this.appointmentProducer = appointmentProducer;
     }
 
     // 🩵 Lấy tất cả lịch hẹn
@@ -45,14 +51,55 @@ public class AppointmentController {
         return repo.findByPatientId(patientId);
     }
 
-    // 🩵 Tạo mới lịch hẹn
+    // 🩵 Tạo mới lịch hẹn + tb
     @PostMapping
     public Appointment create(@RequestBody Appointment appointment) {
         if (appointment.getStatus() == null) {
             appointment.setStatus(Status.REGISTERED);
         }
-        return repo.save(appointment);
+Appointment saved = repo.save(appointment);
+
+    // 🔄 Gọi sang user-service để lấy thông tin bệnh nhân
+    RestTemplate restTemplate = new RestTemplate();
+String userServiceUrl = "http://api-gateway:8080/user-service/api/patients/" + saved.getPatientId();
+
+    try {
+        ResponseEntity<Map> response = restTemplate.getForEntity(userServiceUrl, Map.class);
+        Map patientData = response.getBody();
+
+        // ✅ Lấy userId từ JSON trả về
+        String userIdStr = (String) patientData.get("userId");
+
+        appointmentProducer.sendAppointmentEvent(
+            new AppointmentEvent(
+                saved.getId(),
+                saved.getPatientId(),
+                UUID.fromString(userIdStr),   // ✅ Gửi userId thật
+                saved.getDoctorId(),
+                saved.getStatus().name(),
+                saved.getAppointmentTime()
+            )
+        );
+
+        System.out.println("📤 Event gửi thành công với userId: " + userIdStr);
+
+    } catch (Exception e) {
+        System.err.println("❌ Không lấy được userId từ user-service: " + e.getMessage());
+        // fallback: vẫn gửi event, nhưng dùng patientId tạm
+        appointmentProducer.sendAppointmentEvent(
+            new AppointmentEvent(
+                saved.getId(),
+                saved.getPatientId(),
+                saved.getPatientId(),
+                saved.getDoctorId(),
+                saved.getStatus().name(),
+                saved.getAppointmentTime()
+            )
+        );
     }
+
+    return saved;
+}
 
     // 🩵 Cập nhật trạng thái hoặc gán bác sĩ
     @PutMapping("/{id}")
@@ -106,4 +153,13 @@ public class AppointmentController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    
+
+    // @GetMapping("/test-message")
+    // public String sendTestMessage() {
+    //     appointmentProducer.sendTestMessage("Xin chào từ AppointmentService!");
+    //     return "✅ Đã gửi message đến RabbitMQ!";
+    // }
+    
 }

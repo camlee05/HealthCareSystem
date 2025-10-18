@@ -1,8 +1,11 @@
 package com.hospital.notification.config;
 
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.amqp.support.converter.MessageConverter;
+
 
 @Configuration
 public class RabbitMQConfig {
@@ -27,5 +30,9 @@ public class RabbitMQConfig {
                 .bind(queue)
                 .to(exchange)
                 .with(ROUTING_KEY);
+    }
+    @Bean
+    public MessageConverter jsonConverter() {
+        return new Jackson2JsonMessageConverter();
     }
 }

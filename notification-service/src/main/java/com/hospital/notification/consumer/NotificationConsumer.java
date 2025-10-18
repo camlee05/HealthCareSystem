@@ -1,66 +1,55 @@
 // package com.hospital.notification.consumer;
 
-// import com.fasterxml.jackson.databind.JsonNode;
-// import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.hospital.notification.config.RabbitMQConfig;
+// import com.hospital.notification.event.AppointmentEvent;
 // import com.hospital.notification.model.Notification;
 // import com.hospital.notification.repository.NotificationRepository;
-// import com.hospital.notification.config.RabbitMQConfig;
 // import org.springframework.amqp.rabbit.annotation.RabbitListener;
 // import org.springframework.stereotype.Service;
-
 // import java.time.LocalDateTime;
 
 // @Service
 // public class NotificationConsumer {
 
 //     private final NotificationRepository repo;
-//     private final ObjectMapper objectMapper;
 
-//     public NotificationConsumer(NotificationRepository repo, ObjectMapper objectMapper) {
+//     public NotificationConsumer(NotificationRepository repo) {
 //         this.repo = repo;
-//         this.objectMapper = objectMapper;
 //     }
 
-//     @RabbitListener(queues = RabbitMQConfig.QUEUE)
-//     public void handleMessage(String message) {
+//     // 📨 Nhận sự kiện từ RabbitMQ
+//     @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
+//     public void receiveAppointmentEvent(AppointmentEvent event) {
 //         try {
-//             System.out.println("📩 Received message from RabbitMQ: " + message);
+//             String message;
 
-//             JsonNode json = objectMapper.readTree(message);
-
-//             String action = json.has("action") ? json.get("action").asText() : "UNKNOWN";
-//             String msg;
-
-//             switch (action) {
-//                 case "CREATE":
-//                     msg = "📅 New appointment created for patient "
-//                             + json.get("patientId").asText()
-//                             + " with doctor " + json.get("doctorId").asText()
-//                             + " at " + json.get("time").asText();
-//                     break;
-//                 case "UPDATE":
-//                     msg = "✏️ Appointment " + json.get("appointmentId").asText()
-//                             + " updated. Status: " + json.get("status").asText();
-//                     break;
-//                 case "DELETE":
-//                     msg = "❌ Appointment " + json.get("appointmentId").asText()
-//                             + " has been deleted.";
-//                     break;
-//                 default:
-//                     msg = message;
+//             // 🩺 Tạo thông báo theo vai trò (Patient / Doctor / Admin)
+//             if (event.getDoctorId() != null) {
+//                 message = "👨‍⚕️ Có lịch hẹn mới với bệnh nhân ID: "
+//                         + event.getPatientId()
+//                         + " vào " + event.getTime();
+//             } else {
+//                 message = "✅ Đặt lịch thành công vào " + event.getTime();
 //             }
 
-//             Notification n = new Notification();
-//             n.setMessage(msg);
-//             // tạm coi patientId là userId để thông báo cho bệnh nhân
-//             n.setUserId(json.has("patientId") ? json.get("patientId").asLong() : 0L);
-//             n.setRead(false);
-//             n.setCreatedAt(LocalDateTime.now());
+//             // 🧩 Chống trùng thông báo
+//             if (repo.existsByMessage(message)) {
+//                 System.out.println("⚠️ Bỏ qua thông báo trùng: " + message);
+//                 return;
+//             }
 
-//             repo.save(n);
-//             System.out.println("✅ Notification saved to DB");
+//             Notification noti = new Notification();
+//             noti.setUserId(event.getPatientId());  // Có thể mở rộng sau cho doctor/admin
+//             noti.setMessage(message);
+//             noti.setRead(false);
+//             noti.setCreatedAt(LocalDateTime.now());
+
+//             repo.save(noti);
+//             System.out.println("📩 Nhận và lưu thông báo: " + message);
+
 //         } catch (Exception e) {
-//             System.err.println("❌ Failed to process message: " + e.getMessage());
+//             System.err.println("❌ Lỗi khi xử lý message RabbitMQ: " + e.getMessage());
+//             e.printStackTrace();
 //         }
 //     }
 // }

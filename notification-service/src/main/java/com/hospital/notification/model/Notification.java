@@ -2,6 +2,7 @@ package com.hospital.notification.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "notifications")
@@ -11,20 +12,19 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId;          // người nhận thông báo (patient hoặc doctor)
+    @Column(columnDefinition = "uuid", nullable = false)
+    private UUID userId;          // người nhận thông báo (UUID)
 
     @Column(nullable = false, length = 255)
-    private String message;       // nội dung thông báo
+    private String message;
 
-    private boolean read;         // đã đọc hay chưa
+    private boolean read;
 
-    private LocalDateTime createdAt; // thời gian tạo thông báo
+    private LocalDateTime createdAt;
 
-    // --- Constructors ---
-    public Notification() {
-    }
+    public Notification() {}
 
-    public Notification(Long id, Long userId, String message, boolean read, LocalDateTime createdAt) {
+    public Notification(Long id, UUID userId, String message, boolean read, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
         this.message = message;
@@ -32,44 +32,18 @@ public class Notification {
         this.createdAt = createdAt;
     }
 
-    // --- Getters and Setters ---
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
 
-    public Long getUserId() {
-        return userId;
-    }
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+    public boolean isRead() { return read; }
+    public void setRead(boolean read) { this.read = read; }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public boolean isRead() {
-        return read;
-    }
-
-    public void setRead(boolean read) {
-        this.read = read;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
