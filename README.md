@@ -1,74 +1,87 @@
 🏥 Hospital Microservices System
 
-Hệ thống Quản lý Bệnh viện được xây dựng theo kiến trúc Microservices, nhằm hỗ trợ quản lý hồ sơ bệnh nhân, bác sĩ, phòng điều trị, lịch khám và các nghiệp vụ liên quan trong bệnh viện.
+A Hospital Management System built using Microservices Architecture, designed to manage patients, doctors, treatment rooms, appointments, and other hospital-related operations.
 
-Dự án được phát triển phục vụ mục tiêu học tập – nghiên cứu, đồng thời mô phỏng một hệ thống thực tế có khả năng mở rộng, bảo trì và triển khai độc lập từng dịch vụ.
+This project is developed for learning and research purposes, while simulating a real-world scalable system with independently deployable services.
 
-📌 Mục tiêu dự án
+📌 Project Goals
 
-Áp dụng kiến trúc Microservices vào bài toán quản lý bệnh viện
+Apply Microservices Architecture to hospital management
 
-Tách biệt rõ business logic giữa các dịch vụ
+Clearly separate business logic across services
 
-Dễ dàng mở rộng, bảo trì và triển khai độc lập
+Enable easy scalability, maintenance, and independent deployment
 
-Làm quen với Spring Boot, RESTful API, Docker
+Gain hands-on experience with Spring Boot, RESTful APIs, and Docker
 
-👥 Đối tượng sử dụng
+👥 Target Users
+🔹 Administrator (Admin)
 
-Quản trị viên (Admin): quản lý hệ thống, cấu hình dữ liệu
+System configuration
 
-Bác sĩ: xem danh sách bệnh nhân, lịch khám
+Data and service management
 
-Nhân viên y tế: quản lý hồ sơ bệnh nhân, phòng điều trị
+🔹 Doctors
 
-Bệnh nhân (mở rộng): xem lịch khám, thông tin cá nhân
+View patient lists
 
-🧱 Kiến trúc hệ thống
+Manage appointment schedules
 
-Hệ thống được chia thành nhiều dịch vụ độc lập, giao tiếp với nhau thông qua REST API.
+🔹 Medical Staff
 
-Các microservices chính:
+Manage patient records
 
-patient-service: Quản lý hồ sơ bệnh nhân
+Manage treatment rooms
 
-doctor-service: Quản lý thông tin bác sĩ
+🔹 Patients (future extension)
 
-room-service: Quản lý phòng điều trị
+View personal information
 
-appointment-service (mở rộng): Quản lý lịch khám
+View appointment schedules
 
-api-gateway (mở rộng): Cổng giao tiếp tập trung
+🧱 System Architecture
 
-discovery-server (Eureka) (mở rộng): Phát hiện dịch vụ
+The system is composed of independent microservices communicating via RESTful APIs.
 
-🛠️ Công nghệ sử dụng
-Thành phần	Công nghệ
+Core Microservices
+
+patient-service – Patient records management
+
+doctor-service – Doctor information management
+
+room-service – Treatment room management
+
+appointment-service (optional) – Appointment scheduling
+
+api-gateway (optional) – Centralized API gateway
+
+discovery-server (Eureka) (optional) – Service discovery
+
+🛠️ Technology Stack
+Layer	Technology
 Backend	Java, Spring Boot
-Giao tiếp	RESTful API
-Cơ sở dữ liệu	MySQL / PostgreSQL
+API Communication	RESTful API
+Database	MySQL / PostgreSQL
 ORM	JPA / Hibernate
-Build tool	Maven
-Container	Docker, Docker Compose
-Quản lý dịch vụ	Eureka (optional)
-
-🚀 Hướng dẫn chạy dự án
-1️⃣ Clone repository
+Build Tool	Maven
+Containerization	Docker, Docker Compose
+Service Discovery	Eureka (optional)
+🚀 Getting Started
+1️⃣ Clone the repository
 git clone https://github.com/your-username/hospital-microservices.git
 cd hospital-microservices
 
-2️⃣ Chạy từng service (local)
+2️⃣ Run a service locally
 cd patient-service
 mvn spring-boot:run
 
-3️⃣ Chạy toàn bộ bằng Docker
+3️⃣ Run all services with Docker
 docker compose up -d --build
 
-📚 Mục đích học tập
+📚 Academic Purpose
 
-Bài tập / đồ án môn Ứng dụng phân tán / Kiến trúc phần mềm
+Course project for Distributed Systems / Software Architecture
 
-Nghiên cứu kiến trúc Microservices
+Practice and research on Microservices Architecture
 
-Rèn luyện kỹ năng làm việc nhóm và thiết kế hệ thống
-
+Improve teamwork and system design skills
